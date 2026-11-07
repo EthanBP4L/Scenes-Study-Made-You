@@ -1,5 +1,5 @@
 from pydantic import BaseModel, Field
-
+from schemas.flashcards import FlashcardCreate
 
 class DeckCreate(BaseModel):
     name: str = Field(
@@ -13,3 +13,17 @@ class DeckCreate(BaseModel):
     )
 
     is_public: bool = False
+
+
+class DeckUpdate(BaseModel):
+    name: str = Field(
+        min_length=1,
+        max_length=150
+    )
+
+class DeckCreateWithFlashcards(DeckCreate):
+    flashcards: list[FlashcardCreate] = Field(
+        min_length=1,
+        max_length=50
+    )
+
