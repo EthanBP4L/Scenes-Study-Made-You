@@ -120,6 +120,8 @@ dist
 # FuseBox cache
 .fusebox/
 
+backend/uploads/
+
 # DynamoDB Local files
 .dynamodb/
 

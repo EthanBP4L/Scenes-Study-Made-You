@@ -1,5 +1,7 @@
+from __future__ import annotations
 
 from datetime import datetime, timezone
+from profile import Profile
 
 from sqlalchemy import String, DateTime
 from sqlalchemy.orm import Mapped, mapped_column, relationship
@@ -39,3 +41,23 @@ class User(Base):
         default=lambda: datetime.now(timezone.utc),
         nullable=False
     )
+
+    decks: Mapped[list["Deck"]] = relationship(
+        "Deck",
+        back_populates="owner"
+    )
+
+    profile: Mapped["Profile | None"] = relationship(
+        "Profile",
+        back_populates="user",
+        uselist=False,
+        cascade="all, delete-orphan"
+    )
+
+    room: Mapped["Room | None"] = relationship(
+        "Room",
+        back_populates="owner",
+        uselist=False,
+        cascade="all, delete-orphan"
+    )
+

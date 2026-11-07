@@ -1,7 +1,7 @@
 
 from datetime import datetime, timezone
 
-from sqlalchemy import String, DateTime, Boolean
+from sqlalchemy import String, DateTime, Boolean, ForeignKey
 from sqlalchemy.orm import Mapped, mapped_column, relationship
 
 from database import Base
@@ -43,4 +43,17 @@ class Deck(Base):
         back_populates="deck",
         cascade="all, delete-orphan"
     )
+
+
+    owner_id: Mapped[int | None] = mapped_column(
+        ForeignKey("users.id"),
+        nullable=True,
+        index=True
+    )
+
+    owner: Mapped["User"] = relationship(
+        "User",
+        back_populates="decks"
+    )
+
 
