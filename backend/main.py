@@ -9,6 +9,12 @@ from services.gemini_service import generate_flashcards
 from database import Base, engine
 from models.flashcard_decks import Deck
 from models.flashcards import Flashcard
+from schemas.flashcards import FlashcardCreate
+
+from fastapi import Depends
+from sqlalchemy.orm import Session
+from database import SessionLocal
+from schemas.flashcard_decks import DeckCreate
 
 app = FastAPI()
 
@@ -21,6 +27,14 @@ app.add_middleware(
     allow_methods=["*"],
     allow_headers=["*"],
 )
+
+
+def get_db():
+    db = SessionLocal()
+    try:
+        yield db
+    finally:
+        db.close()
 
 
 @app.get("/")
@@ -95,6 +109,81 @@ async def create_flashcards(
         "filename": file.filename,
         "flashcards": flashcards
     }
+
+
+@app.post("/api/v1/decks", status_code=201)
+def create_deck(
+    deck_data: DeckCreate,
+    db: Session = Depends(get_db)
+):
+    new_deck = Deck(
+        name=deck_data.name,
+        description=deck_data.description,
+        is_public=deck_data.is_public
+    )
+
+    db.add(new_deck)
+
+    try:
+        db.commit()
+        db.refresh(new_deck)
+    except Exception:
+        db.rollback()
+        raise HTTPException(
+            status_code=500,
+            detail="Unable to save the study deck."
+        )
+
+    return {
+        "id": new_deck.id,
+        "name": new_deck.name,
+        "description": new_deck.description,
+        "is_public": new_deck.is_public,
+        "created_at": new_deck.created_at
+    }
+
+
+@app.post("/api/v1/decks/{deck_id}/flashcards", status_code=201)
+def add_flashcard(
+    deck_id: int,
+    flashcard_data: FlashcardCreate,
+    db: Session = Depends(get_db)
+):
+    # Verify that the deck exists.
+    deck = db.get(Deck, deck_id)
+
+    if deck is None:
+        raise HTTPException(
+            status_code=404,
+            detail="Study deck not found."
+        )
+
+    # Create a new flashcard associated with the deck.
+    new_flashcard = Flashcard(
+        deck_id=deck.id,
+        question=flashcard_data.question,
+        answer=flashcard_data.answer
+    )
+
+    db.add(new_flashcard)
+
+    try:
+        db.commit()
+        db.refresh(new_flashcard)
+    except Exception:
+        db.rollback()
+        raise HTTPException(
+            status_code=500,
+            detail="Unable to save the flashcard."
+        )
+
+    return {
+        "id": new_flashcard.id,
+        "deck_id": new_flashcard.deck_id,
+        "question": new_flashcard.question,
+        "answer": new_flashcard.answer
+    }
+
 
 
 
