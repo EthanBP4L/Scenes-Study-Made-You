@@ -24,3 +24,323 @@ body {
   color: var(--foreground);
   font-family: Arial, Helvetica, sans-serif;
 }
+
+/* SCENES — Chameleon Background Engine */
+
+#scene-background {
+  overflow: hidden;
+}
+
+.scene-color {
+  position: absolute;
+  inset: 0;
+  opacity: 0;
+  animation: sceneCycle 18s infinite;
+}
+
+.scene-color-1 {
+  background: linear-gradient(135deg, #25183e, #703e87, #17142d);
+  animation-delay: 0s;
+}
+
+.scene-color-2 {
+  background: linear-gradient(135deg, #083f48, #247f85, #111e3b);
+  animation-delay: 6s;
+}
+
+.scene-color-3 {
+  background: linear-gradient(135deg, #6c2948, #bc695a, #362344);
+  animation-delay: 12s;
+}
+
+@keyframes sceneCycle {
+  0% {
+    opacity: 0;
+  }
+
+  5% {
+    opacity: 1;
+  }
+
+  33.33% {
+    opacity: 1;
+  }
+
+  38.33% {
+    opacity: 0;
+  }
+
+  100% {
+    opacity: 0;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .scene-color {
+    animation: none;
+  }
+
+  .scene-color-1 {
+    opacity: 1;
+  }
+}
+
+/* SCENES — Atmospheric Light System */
+
+.scene-light {
+  position: absolute;
+  width: 55vw;
+  height: 55vw;
+  min-width: 320px;
+  min-height: 320px;
+  border-radius: 50%;
+  filter: blur(90px);
+  opacity: 0.22;
+  will-change: transform;
+  animation: sceneLightFloat 16s ease-in-out infinite alternate;
+}
+
+.scene-light-one {
+  top: -25%;
+  left: -15%;
+  background: #b18aff;
+}
+
+.scene-light-two {
+  right: -20%;
+  bottom: -30%;
+  background: #77e9e0;
+  animation-delay: -8s;
+  animation-duration: 21s;
+}
+
+@keyframes sceneLightFloat {
+  0% {
+    transform: translate3d(-5%, -5%, 0) scale(1);
+  }
+
+  100% {
+    transform: translate3d(15%, 12%, 0) scale(1.25);
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .scene-light {
+    animation: none;
+  }
+}
+
+/* SCENES — Animated Logo Sheen */
+
+.scene-logo {
+  background: linear-gradient(
+    110deg,
+    #ffffff 0%,
+    #ffffff 38%,
+    #b9d9ff 46%,
+    #ffffff 54%,
+    #ffffff 100%
+  );
+  background-size: 250% 100%;
+  background-position: 100% 50%;
+  -webkit-background-clip: text;
+  background-clip: text;
+  color: transparent;
+  animation: sceneLogoSheen 9s ease-in-out infinite;
+}
+
+@keyframes sceneLogoSheen {
+  0%, 15% {
+    background-position: 100% 50%;
+  }
+
+  45%, 100% {
+    background-position: 0% 50%;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .scene-logo {
+    animation: none;
+    background-position: 100% 50%;
+  }
+}
+
+/* SCENES — Interactive Navigation Orb */
+
+.scene-orb {
+  position: relative;
+  animation: sceneOrbFloat 4s ease-in-out infinite;
+  transition:
+    background 0.3s ease,
+    border-color 0.3s ease,
+    box-shadow 0.3s ease;
+}
+
+.scene-orb:hover {
+  background: rgba(255, 255, 255, 0.2);
+  border-color: rgba(255, 255, 255, 0.6);
+  box-shadow:
+    0 0 25px rgba(180, 160, 255, 0.35),
+    inset 0 0 20px rgba(255, 255, 255, 0.1);
+}
+
+.scene-orb:active {
+  background: rgba(255, 255, 255, 0.3);
+}
+
+.scene-orb:focus-visible {
+  outline: 2px solid white;
+  outline-offset: 5px;
+}
+
+@keyframes sceneOrbFloat {
+  0%, 100% {
+    transform: translateY(0);
+  }
+
+  50% {
+    transform: translateY(-10px);
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .scene-orb {
+    animation: none;
+  }
+}
+
+/* SCENES — Orb Liquid Press Prototype */
+
+.scene-orb {
+  transform-origin: center;
+}
+
+.scene-orb:active {
+  animation-play-state: paused;
+  transform: scaleX(1.12) scaleY(0.86);
+  border-radius: 46% 46% 52% 52%;
+  box-shadow:
+    inset 0 8px 22px rgba(0, 0, 0, 0.25),
+    inset 0 -6px 18px rgba(255, 255, 255, 0.2),
+    0 0 25px rgba(180, 160, 255, 0.3);
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .scene-orb:active {
+    transform: none;
+  }
+}
+
+/* SCENES — Orb Expansion Prototype */
+
+.scene-orb {
+  width: 80px;
+  height: 80px;
+  transition:
+    width 0.65s cubic-bezier(0.22, 1, 0.36, 1),
+    height 0.65s cubic-bezier(0.22, 1, 0.36, 1),
+    background 0.3s ease,
+    border-color 0.3s ease,
+    box-shadow 0.3s ease,
+    transform 0.2s ease;
+}
+
+.scene-orb-collapsed {
+  width: 80px;
+  height: 80px;
+}
+
+.scene-orb-expanded {
+  
+width: min(220px, 65vw, 30vh);
+height: min(220px, 65vw, 30vh);
+
+  background: rgba(255, 255, 255, 0.13);
+  border-color: rgba(255, 255, 255, 0.5);
+  box-shadow:
+    inset 0 0 35px rgba(255, 255, 255, 0.08),
+    0 0 55px rgba(170, 150, 255, 0.25);
+  animation: none;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .scene-orb {
+    transition: none;
+  }
+}
+
+/* SCENES — Underwater Bubble Animation */
+
+.ocean-bubble {
+  transform-box: fill-box;
+  transform-origin: center;
+  animation: oceanBubbleRise 10s linear infinite;
+}
+
+@keyframes oceanBubbleRise {
+  0% {
+    transform: translate(0, 70px);
+    opacity: 0;
+  }
+
+  15% {
+    opacity: 0.45;
+  }
+
+  80% {
+    opacity: 0.45;
+  }
+
+  100% {
+    transform: translate(20px, -180px);
+    opacity: 0;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .ocean-bubble {
+    animation: none;
+    opacity: 0.45;
+  }
+}
+
+/* SCENES — Underwater Sunlight Animation */
+
+.ocean-light-ray {
+  transform-box: view-box;
+  transform-origin: top center;
+  will-change: transform, opacity;
+  animation: oceanLightSway 12s ease-in-out infinite alternate;
+}
+
+.ocean-light-ray-one {
+  animation-duration: 12s;
+}
+
+.ocean-light-ray-two {
+  animation-duration: 16s;
+  animation-delay: -5s;
+}
+
+@keyframes oceanLightSway {
+  0% {
+    transform: rotate(-3deg) translateX(-25px);
+    opacity: 0.5;
+  }
+
+  50% {
+    opacity: 0.9;
+  }
+
+  100% {
+    transform: rotate(3deg) translateX(25px);
+    opacity: 0.6;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .ocean-light-ray {
+    animation: none;
+  }
+}
