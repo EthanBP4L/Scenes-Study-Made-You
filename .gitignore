@@ -68,6 +68,13 @@ web_modules/
 # dotenv environment variable files
 .env
 .env.*
+# Python virtual environment
+backend/venv/
+
+# Python cache
+__pycache__/
+*.py[cod]
+
 !.env.example
 
 # parcel-bundler cache (https://parceljs.org/)
@@ -115,6 +122,11 @@ dist
 
 # DynamoDB Local files
 .dynamodb/
+
+# Local SQLite databases
+*.db
+*.db-shm
+*.db-wal
 
 # Firebase cache directory
 .firebase/
