@@ -45,6 +45,10 @@ class Appearance(RoomSchema):
     fontFamily: str = Field(max_length=150)
     fontSize: float = Field(ge=1, le=300)
     fontWeight: int = Field(ge=100, le=900)
+    backgroundImage: str | None = Field(
+    default=None,
+    max_length=500
+    )
 
 
 class Animation(RoomSchema):

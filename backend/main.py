@@ -1,5 +1,7 @@
 
 from email.mime import text
+
+from opentelemetry.metrics import obj
 from security import hash_password, verify_password, generate_session_token, hash_session_token
 from datetime import datetime, timedelta, timezone
 import requests
@@ -1186,12 +1188,18 @@ def save_my_room(
     if profile and profile.profile_picture:
         allowed_images.add(profile.profile_picture)
 
+
     media_references = [
         room_data.background.mediaUrl
     ]
 
     for obj in room_data.objects:
+        # Main image displayed by the object
         media_references.append(obj.mediaUrl)
+
+        # Optional image used as the object's background
+        media_references.append(obj.appearance.backgroundImage)
+
 
         if obj.type == "study-sets":
             if obj.dataSourceId is not None:
