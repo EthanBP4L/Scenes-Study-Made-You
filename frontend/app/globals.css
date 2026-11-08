@@ -344,3 +344,121 @@ height: min(220px, 65vw, 30vh);
     animation: none;
   }
 }
+
+/* SCENES — Ambient Typography Movement */
+
+.scene-title-float {
+  animation: sceneTitleFloat 6s ease-in-out infinite;
+  will-change: transform;
+}
+
+@keyframes sceneTitleFloat {
+  0%, 100% {
+    transform: translate3d(0, 0, 0);
+  }
+
+  25% {
+    transform: translate3d(-5px, -8px, 0);
+  }
+
+  50% {
+    transform: translate3d(3px, -14px, 0);
+  }
+
+  75% {
+    transform: translate3d(6px, -5px, 0);
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .scene-title-float {
+    animation: none;
+    will-change: auto;
+  }
+}
+
+/* SCENES UNIVERSAL ANIMATION PRESETS */
+/* Intensity is controlled by --scene-motion-intensity */
+
+@keyframes scene-float {
+  0%, 100% {
+    transform: translate3d(0, 0, 0);
+  }
+  25% {
+    transform: translate3d(
+      calc(-5px * var(--scene-motion-intensity, 1)),
+      calc(-8px * var(--scene-motion-intensity, 1)),
+      0
+    );
+  }
+  50% {
+    transform: translate3d(
+      calc(3px * var(--scene-motion-intensity, 1)),
+      calc(-14px * var(--scene-motion-intensity, 1)),
+      0
+    );
+  }
+  75% {
+    transform: translate3d(
+      calc(6px * var(--scene-motion-intensity, 1)),
+      calc(-5px * var(--scene-motion-intensity, 1)),
+      0
+    );
+  }
+}
+
+@keyframes scene-sway {
+  0%, 100% {
+    transform: rotate(
+      calc(-5deg * var(--scene-motion-intensity, 1))
+    );
+  }
+  50% {
+    transform: rotate(
+      calc(5deg * var(--scene-motion-intensity, 1))
+    );
+  }
+}
+
+
+@keyframes scene-spin {
+  from {
+    transform: rotate(0deg);
+  }
+
+  to {
+    transform: rotate(
+      calc(360deg * var(--scene-motion-intensity, 1))
+    );
+  }
+}
+
+
+@keyframes scene-pulse {
+  0%, 100% {
+    transform: scale(1);
+  }
+  50% {
+    transform: scale(
+      calc(1 + 0.08 * var(--scene-motion-intensity, 1))
+    );
+  }
+}
+
+@keyframes scene-bounce {
+  0%, 100% {
+    transform: translateY(0);
+  }
+  50% {
+    transform: translateY(
+      calc(-24px * var(--scene-motion-intensity, 1))
+    );
+  }
+}
+
+/* Respect accessibility preferences */
+@media (prefers-reduced-motion: reduce) {
+  .scene-animated {
+    animation: none !important;
+  }
+}
