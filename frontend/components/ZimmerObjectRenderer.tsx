@@ -2,9 +2,7 @@
 "use client";
 
 import type { CSSProperties } from "react";
-
 import type { ZimmerObject } from "../lib/zimmerTypes";
-
 import { renderSceneAnimation } from "../lib/sceneAnimationRenderer";
 
 type Props = {
@@ -22,7 +20,14 @@ export default function ZimmerObjectRenderer({
 
   const { transform, appearance } = object;
 
-  // All visual properties come from object data.
+  const isText = object.type === "text";
+  const isSection = object.type === "section";
+
+  const isMedia =
+    object.type === "image" ||
+    object.type === "gif" ||
+    object.type === "sticker";
+
   const objectStyle: CSSProperties = {
     position: "absolute",
 
@@ -63,14 +68,37 @@ export default function ZimmerObjectRenderer({
     cursor: object.locked ? "default" : "pointer",
   };
 
-  // Decide what the object displays.
   function renderContent() {
     switch (object.type) {
       case "text":
+        return (
+          <div
+            className="flex h-full w-full items-center whitespace-pre-line px-2"
+            style={{
+              lineHeight: 1.12,
+              letterSpacing:
+                appearance.fontSize >= 50 ? "-0.045em" : "normal",
+            }}
+          >
+            {object.content}
+          </div>
+        );
+
       case "section":
+        return (
+          <div
+            className="h-full w-full whitespace-pre-line p-6"
+            style={{
+              lineHeight: 1.55,
+            }}
+          >
+            {object.content}
+          </div>
+        );
+
       case "decoration":
         return (
-          <div className="h-full w-full p-2">
+          <div className="flex h-full w-full items-center justify-center whitespace-pre-line p-2 text-center">
             {object.content}
           </div>
         );
@@ -84,7 +112,11 @@ export default function ZimmerObjectRenderer({
             src={object.mediaUrl}
             alt={object.name}
             draggable={false}
-            className="h-full w-full object-contain"
+            className={
+              object.type === "sticker"
+                ? "pointer-events-none h-full w-full select-none object-contain"
+                : "pointer-events-none h-full w-full select-none object-cover"
+            }
           />
         ) : null;
 
@@ -96,7 +128,7 @@ export default function ZimmerObjectRenderer({
             muted
             loop
             playsInline
-            className="h-full w-full object-cover"
+            className="pointer-events-none h-full w-full object-cover"
           />
         ) : null;
 
@@ -105,12 +137,12 @@ export default function ZimmerObjectRenderer({
 
       case "study-sets":
         return (
-          <div className="h-full w-full rounded-xl bg-white/10 p-4">
-            <h3 className="text-lg font-semibold">
+          <div className="flex h-full w-full flex-col justify-center rounded-xl bg-white/10 p-4">
+            <h3 className="text-lg font-semibold text-white">
               My Study Sets
             </h3>
 
-            <p className="mt-2 text-sm opacity-70">
+            <p className="mt-2 text-sm text-white/70">
               Study-set widget placeholder
             </p>
           </div>
@@ -124,15 +156,12 @@ export default function ZimmerObjectRenderer({
   return (
     <div
       data-zimmer-object-id={object.id}
+      data-zimmer-object-type={object.type}
       style={objectStyle}
-      
-onClick={(event) => {
-  event.stopPropagation();
-  
-onSelect?.(object.id);
-
-}}
-
+      onClick={(event) => {
+        event.stopPropagation();
+        onSelect?.(object.id);
+      }}
     >
       <div
         className={
