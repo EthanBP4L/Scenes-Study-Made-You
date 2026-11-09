@@ -1,0 +1,738 @@
+{
+  "presetName": "SCENES Default Zimmer",
+  "presetVersion": 1,
+  "canvas": {
+    "width": 1200,
+    "height": 1000
+  },
+  "room": {
+    "schemaVersion": 1,
+    "name": "My Zimmer",
+    "visibility": "private",
+    "published": false,
+    "background": {
+      "type": "gradient",
+      "color": "#080817",
+      "gradient": "radial-gradient(ellipse at 72% 18%, #6b4d8d 0%, #3a2959 38%, #18152f 72%, #0b1025 100%)",
+      "mediaUrl": null
+    },
+    "objects": [
+      {
+        "id": "b7ae21a6-9645-4193-a748-b95a4c6fd59a",
+        "type": "gif",
+        "name": "GIF",
+        "visible": true,
+        "locked": false,
+        "animation": {
+          "type": "none",
+          "duration": 6,
+          "delay": 0,
+          "intensity": 1,
+          "infinite": true
+        },
+        "transform": {
+          "x": 842,
+          "y": 155,
+          "width": 362,
+          "height": 82,
+          "rotation": 0,
+          "zIndex": 1
+        },
+        "appearance": {
+          "opacity": 1,
+          "backgroundColor": "transparent",
+          "borderColor": "#ffffff",
+          "borderWidth": 0,
+          "borderRadius": 22,
+          "borderStyle": "none",
+          "boxShadow": "0 12px 45px rgba(0,0,0,0.3)",
+          "blur": 0,
+          "color": "#ffffff",
+          "fontFamily": "Arial, Helvetica, sans-serif",
+          "fontSize": 24,
+          "fontWeight": 400
+        },
+        "content": "",
+        "parentId": null,
+        "dataSourceId": null,
+        "mediaUrl": "/graphics/backgrounds/lavender-clouds-v2.gif"
+      },
+      {
+        "id": "sparkle-sticker",
+        "type": "sticker",
+        "name": "Silver Sparkle",
+        "visible": true,
+        "locked": false,
+        "animation": {
+          "type": "none",
+          "duration": 6,
+          "delay": 0,
+          "intensity": 1,
+          "infinite": true
+        },
+        "transform": {
+          "x": 1108.8401932000002,
+          "y": 152.9907574,
+          "width": 95,
+          "height": 83.42638915673838,
+          "rotation": 33.47532556830396,
+          "zIndex": 2
+        },
+        "appearance": {
+          "opacity": 1,
+          "backgroundColor": "transparent",
+          "borderColor": "#ffffff",
+          "borderWidth": 0,
+          "borderRadius": 0,
+          "borderStyle": "none",
+          "boxShadow": "none",
+          "blur": 0,
+          "color": "#ffffff",
+          "fontFamily": "Arial, Helvetica, sans-serif",
+          "fontSize": 24,
+          "fontWeight": 400
+        },
+        "content": "",
+        "parentId": null,
+        "dataSourceId": null,
+        "mediaUrl": "/graphics/stickers/silver-sparkle.png"
+      },
+      {
+        "id": "ce7a0290-124c-44a2-8fb2-1a7a7b8df7c1",
+        "type": "sticker",
+        "name": "Purple Butterfly",
+        "visible": true,
+        "locked": false,
+        "animation": {
+          "type": "none",
+          "duration": 6,
+          "delay": 0,
+          "intensity": 1,
+          "infinite": true
+        },
+        "transform": {
+          "x": 850.9777522999999,
+          "y": 151.4940481,
+          "width": 90.03947532230771,
+          "height": 79.50520612424774,
+          "rotation": -46.56599850895843,
+          "zIndex": 3
+        },
+        "appearance": {
+          "opacity": 0.63,
+          "backgroundColor": "transparent",
+          "borderColor": "#ffffff",
+          "borderWidth": 0,
+          "borderRadius": 0,
+          "borderStyle": "none",
+          "boxShadow": "none",
+          "blur": 0,
+          "color": "#ffffff",
+          "fontFamily": "Arial, Helvetica, sans-serif",
+          "fontSize": 24,
+          "fontWeight": 400
+        },
+        "content": "",
+        "parentId": null,
+        "dataSourceId": null,
+        "mediaUrl": "/graphics/stickers/purple-butterfly.png"
+      },
+      {
+        "id": "rose-sticker",
+        "type": "sticker",
+        "name": "Pink Rose",
+        "visible": true,
+        "locked": false,
+        "animation": {
+          "type": "none",
+          "duration": 6,
+          "delay": 0,
+          "intensity": 1,
+          "infinite": true
+        },
+        "transform": {
+          "x": -5.142559799999958,
+          "y": 939.2198615,
+          "width": 70.26155974649782,
+          "height": 67.84975277095623,
+          "rotation": 3.10386811547437,
+          "zIndex": 4
+        },
+        "appearance": {
+          "opacity": 1,
+          "backgroundColor": "transparent",
+          "borderColor": "#ffffff",
+          "borderWidth": 0,
+          "borderRadius": 0,
+          "borderStyle": "none",
+          "boxShadow": "none",
+          "blur": 0,
+          "color": "#ffffff",
+          "fontFamily": "Arial, Helvetica, sans-serif",
+          "fontSize": 24,
+          "fontWeight": 400
+        },
+        "content": "",
+        "parentId": null,
+        "dataSourceId": null,
+        "mediaUrl": "/graphics/stickers/pink-rose.png"
+      },
+      {
+        "id": "favorites-section",
+        "type": "section",
+        "name": "Favorites Section",
+        "visible": true,
+        "locked": false,
+        "animation": {
+          "type": "none",
+          "duration": 6,
+          "delay": 0,
+          "intensity": 1,
+          "infinite": true
+        },
+        "transform": {
+          "x": 912,
+          "y": 257,
+          "width": 280,
+          "height": 335,
+          "rotation": 0,
+          "zIndex": 5
+        },
+        "appearance": {
+          "opacity": 1,
+          "backgroundColor": "rgba(33, 25, 68, 0.86)",
+          "borderColor": "#B8A3EF",
+          "borderWidth": 1,
+          "borderRadius": 26,
+          "borderStyle": "solid",
+          "boxShadow": "0 18px 60px rgba(8, 5, 29, 0.34)",
+          "blur": 0,
+          "color": "#fff5ff",
+          "fontFamily": "Arial, Helvetica, sans-serif",
+          "fontSize": 18,
+          "fontWeight": 400
+        },
+        "content": "CURRENTLY INTO\n\n• favorite music\n• favorite shows\n• favorite topic\n• latest obsession",
+        "parentId": null,
+        "dataSourceId": null
+      },
+      {
+        "id": "decor-section",
+        "type": "section",
+        "name": "Decor Section",
+        "visible": true,
+        "locked": false,
+        "animation": {
+          "type": "none",
+          "duration": 6,
+          "delay": 0,
+          "intensity": 1,
+          "infinite": true
+        },
+        "transform": {
+          "x": 74,
+          "y": 491,
+          "width": 629,
+          "height": 274,
+          "rotation": 0.3218457609164034,
+          "zIndex": 6
+        },
+        "appearance": {
+          "opacity": 1,
+          "backgroundColor": "rgba(255, 244, 232, 0.12)",
+          "borderColor": "#E8C1EC",
+          "borderWidth": 1,
+          "borderRadius": 26,
+          "borderStyle": "solid",
+          "boxShadow": "0 18px 60px rgba(8, 5, 29, 0.34)",
+          "blur": 0,
+          "color": "#fff5ff",
+          "fontFamily": "Arial, Helvetica, sans-serif",
+          "fontSize": 18,
+          "fontWeight": 400
+        },
+        "content": "GRAPHICS + DECOR\n\nAdd stickers, images, and visual elements here — or anywhere else in your Zimmer.",
+        "parentId": null,
+        "dataSourceId": null
+      },
+      {
+        "id": "footer-line",
+        "type": "text",
+        "name": "Footer Line",
+        "visible": true,
+        "locked": false,
+        "animation": {
+          "type": "none",
+          "duration": 6,
+          "delay": 0,
+          "intensity": 1,
+          "infinite": true
+        },
+        "transform": {
+          "x": 350,
+          "y": 935,
+          "width": 750,
+          "height": 36,
+          "rotation": 0,
+          "zIndex": 7
+        },
+        "appearance": {
+          "opacity": 1,
+          "backgroundColor": "transparent",
+          "borderColor": "#ffffff",
+          "borderWidth": 0,
+          "borderRadius": 0,
+          "borderStyle": "none",
+          "boxShadow": "none",
+          "blur": 0,
+          "color": "#D7C9F0",
+          "fontFamily": "Arial, Helvetica, sans-serif",
+          "fontSize": 16,
+          "fontWeight": 500
+        },
+        "content": "your room can be clean, chaotic, dreamy, academic, playful — whatever you want",
+        "parentId": null,
+        "dataSourceId": null
+      },
+      {
+        "id": "about-section",
+        "type": "section",
+        "name": "About Section",
+        "visible": true,
+        "locked": false,
+        "animation": {
+          "type": "none",
+          "duration": 6,
+          "delay": 0,
+          "intensity": 1,
+          "infinite": true
+        },
+        "transform": {
+          "x": 59.7853144,
+          "y": 255.4785733,
+          "width": 836.9712638874304,
+          "height": 206.13521734866012,
+          "rotation": 0.26654642755590885,
+          "zIndex": 8
+        },
+        "appearance": {
+          "opacity": 1,
+          "backgroundColor": "rgba(255, 234, 249, 0.14)",
+          "borderColor": "#E7B6F4",
+          "borderWidth": 1,
+          "borderRadius": 26,
+          "borderStyle": "solid",
+          "boxShadow": "0 18px 60px rgba(8, 5, 29, 0.34)",
+          "blur": 0,
+          "color": "#fff5ff",
+          "fontFamily": "Arial, Helvetica, sans-serif",
+          "fontSize": 18,
+          "fontWeight": 400
+        },
+        "content": "ABOUT ME\n\nTell people who you are, what you love, what you're studying, or whatever makes this space feel like yours.",
+        "parentId": null,
+        "dataSourceId": null
+      },
+      {
+        "id": "customize-section",
+        "type": "section",
+        "name": "Customize Section",
+        "visible": true,
+        "locked": false,
+        "animation": {
+          "type": "none",
+          "duration": 6,
+          "delay": 0,
+          "intensity": 1,
+          "infinite": true
+        },
+        "transform": {
+          "x": 735,
+          "y": 496,
+          "width": 165,
+          "height": 166,
+          "rotation": 0,
+          "zIndex": 9
+        },
+        "appearance": {
+          "opacity": 1,
+          "backgroundColor": "rgba(255, 225, 250, 0.11)",
+          "borderColor": "#EFC6FF",
+          "borderWidth": 1,
+          "borderRadius": 26,
+          "borderStyle": "solid",
+          "boxShadow": "0 18px 60px rgba(8, 5, 29, 0.34)",
+          "blur": 0,
+          "color": "#fff5ff",
+          "fontFamily": "Arial, Helvetica, sans-serif",
+          "fontSize": 18,
+          "fontWeight": 400
+        },
+        "content": "START HERE\n\nUse the editor to:\n• change colors\n• edit text\n• move sections\n• add graphics\n• make the room yours",
+        "parentId": null,
+        "dataSourceId": null
+      },
+      {
+        "id": "intro-line",
+        "type": "text",
+        "name": "Intro Line",
+        "visible": true,
+        "locked": false,
+        "animation": {
+          "type": "none",
+          "duration": 6,
+          "delay": 0,
+          "intensity": 1,
+          "infinite": true
+        },
+        "transform": {
+          "x": 319,
+          "y": 187,
+          "width": 350,
+          "height": 45,
+          "rotation": 0.6402479109563058,
+          "zIndex": 10
+        },
+        "appearance": {
+          "opacity": 1,
+          "backgroundColor": "transparent",
+          "borderColor": "#ffffff",
+          "borderWidth": 0,
+          "borderRadius": 0,
+          "borderStyle": "none",
+          "boxShadow": "none",
+          "blur": 0,
+          "color": "#D44BB7",
+          "fontFamily": "Arial, Helvetica, sans-serif",
+          "fontSize": 16,
+          "fontWeight": 800
+        },
+        "content": "✦ YOUR CORNER OF SCENES ✦",
+        "parentId": null,
+        "dataSourceId": null
+      },
+      {
+        "id": "header-status",
+        "type": "text",
+        "name": "Header Status",
+        "visible": true,
+        "locked": false,
+        "animation": {
+          "type": "none",
+          "duration": 6,
+          "delay": 0,
+          "intensity": 1,
+          "infinite": true
+        },
+        "transform": {
+          "x": 904,
+          "y": 216,
+          "width": 310,
+          "height": 30,
+          "rotation": 0,
+          "zIndex": 11
+        },
+        "appearance": {
+          "opacity": 1,
+          "backgroundColor": "transparent",
+          "borderColor": "#ffffff",
+          "borderWidth": 0,
+          "borderRadius": 0,
+          "borderStyle": "none",
+          "boxShadow": "none",
+          "blur": 0,
+          "color": "#B7A2CB",
+          "fontFamily": "Arial, Helvetica, sans-serif",
+          "fontSize": 15,
+          "fontWeight": 400
+        },
+        "content": "some other stuff would go here",
+        "parentId": null,
+        "dataSourceId": null
+      },
+      {
+        "id": "username-title",
+        "type": "text",
+        "name": "Username Title",
+        "visible": true,
+        "locked": false,
+        "animation": {
+          "type": "none",
+          "duration": 6,
+          "delay": 0,
+          "intensity": 1,
+          "infinite": true
+        },
+        "transform": {
+          "x": 873,
+          "y": 163,
+          "width": 310,
+          "height": 70,
+          "rotation": 0,
+          "zIndex": 12
+        },
+        "appearance": {
+          "opacity": 1,
+          "backgroundColor": "transparent",
+          "borderColor": "#ffffff",
+          "borderWidth": 0,
+          "borderRadius": 0,
+          "borderStyle": "none",
+          "boxShadow": "none",
+          "blur": 0,
+          "color": "#F08DD7",
+          "fontFamily": "Arial, Helvetica, sans-serif",
+          "fontSize": 46,
+          "fontWeight": 900
+        },
+        "content": "@yourname",
+        "parentId": null,
+        "dataSourceId": null
+      },
+      {
+        "id": "room-title",
+        "type": "text",
+        "name": "Room Title",
+        "visible": true,
+        "locked": false,
+        "animation": {
+          "type": "none",
+          "duration": 6,
+          "delay": 0,
+          "intensity": 1,
+          "infinite": true
+        },
+        "transform": {
+          "x": 286,
+          "y": 72,
+          "width": 450,
+          "height": 85,
+          "rotation": 0.07535980123719255,
+          "zIndex": 13
+        },
+        "appearance": {
+          "opacity": 1,
+          "backgroundColor": "transparent",
+          "borderColor": "#ffffff",
+          "borderWidth": 0,
+          "borderRadius": 0,
+          "borderStyle": "none",
+          "boxShadow": "none",
+          "blur": 0,
+          "color": "#713BE2",
+          "fontFamily": "Arial, Helvetica, sans-serif",
+          "fontSize": 72,
+          "fontWeight": 900
+        },
+        "content": "your room",
+        "parentId": null,
+        "dataSourceId": null
+      },
+      {
+        "id": "butterfly-sticker",
+        "type": "sticker",
+        "name": "Purple Butterfly",
+        "visible": true,
+        "locked": true,
+        "animation": {
+          "type": "none",
+          "duration": 6,
+          "delay": 0,
+          "intensity": 1,
+          "infinite": true
+        },
+        "transform": {
+          "x": 20.347996600000002,
+          "y": 206.8193209,
+          "width": 112.1154289778052,
+          "height": 95.04337026024581,
+          "rotation": -29.015196246344658,
+          "zIndex": 14
+        },
+        "appearance": {
+          "opacity": 1,
+          "backgroundColor": "transparent",
+          "borderColor": "#ffffff",
+          "borderWidth": 0,
+          "borderRadius": 0,
+          "borderStyle": "none",
+          "boxShadow": "none",
+          "blur": 0,
+          "color": "#ffffff",
+          "fontFamily": "Arial, Helvetica, sans-serif",
+          "fontSize": 24,
+          "fontWeight": 400
+        },
+        "content": "",
+        "parentId": null,
+        "dataSourceId": null,
+        "mediaUrl": "/graphics/stickers/purple-butterfly.png"
+      },
+      {
+        "id": "bow-sticker",
+        "type": "sticker",
+        "name": "Pink Bow",
+        "visible": true,
+        "locked": true,
+        "animation": {
+          "type": "none",
+          "duration": 6,
+          "delay": 0,
+          "intensity": 1,
+          "infinite": true
+        },
+        "transform": {
+          "x": 45.8873997,
+          "y": 450.4453765,
+          "width": 92.10945183397604,
+          "height": 105.94187542715434,
+          "rotation": 0.8356020705073517,
+          "zIndex": 15
+        },
+        "appearance": {
+          "opacity": 1,
+          "backgroundColor": "transparent",
+          "borderColor": "#ffffff",
+          "borderWidth": 0,
+          "borderRadius": 0,
+          "borderStyle": "none",
+          "boxShadow": "none",
+          "blur": 0,
+          "color": "#ffffff",
+          "fontFamily": "Arial, Helvetica, sans-serif",
+          "fontSize": 24,
+          "fontWeight": 400
+        },
+        "content": "",
+        "parentId": null,
+        "dataSourceId": null,
+        "mediaUrl": "/graphics/stickers/pink-bow.png"
+      },
+      {
+        "id": "1f7907fa-197b-4431-a24a-75135dad08d1",
+        "type": "sticker",
+        "name": "Pink Bow",
+        "visible": true,
+        "locked": true,
+        "animation": {
+          "type": "none",
+          "duration": 6,
+          "delay": 0,
+          "intensity": 1,
+          "infinite": true
+        },
+        "transform": {
+          "x": 625.5364047999999,
+          "y": 461.7218191,
+          "width": 104.78745922970543,
+          "height": 86.03272996351527,
+          "rotation": 1.2202520172349622,
+          "zIndex": 16
+        },
+        "appearance": {
+          "opacity": 1,
+          "backgroundColor": "transparent",
+          "borderColor": "#ffffff",
+          "borderWidth": 0,
+          "borderRadius": 0,
+          "borderStyle": "none",
+          "boxShadow": "none",
+          "blur": 0,
+          "color": "#ffffff",
+          "fontFamily": "Arial, Helvetica, sans-serif",
+          "fontSize": 24,
+          "fontWeight": 400
+        },
+        "content": "",
+        "parentId": null,
+        "dataSourceId": null,
+        "mediaUrl": "/graphics/stickers/pink-bow.png"
+      },
+      {
+        "id": "f3948594-9532-4b17-9dd0-f19340aa5e22",
+        "type": "sticker",
+        "name": "Purple Butterfly",
+        "visible": true,
+        "locked": true,
+        "animation": {
+          "type": "none",
+          "duration": 6,
+          "delay": 0,
+          "intensity": 1,
+          "infinite": true
+        },
+        "transform": {
+          "x": 834.2207789,
+          "y": 419.8394913,
+          "width": 91.58666882958255,
+          "height": 80.9673166357919,
+          "rotation": 135.45309641703344,
+          "zIndex": 17
+        },
+        "appearance": {
+          "opacity": 1,
+          "backgroundColor": "transparent",
+          "borderColor": "#ffffff",
+          "borderWidth": 0,
+          "borderRadius": 0,
+          "borderStyle": "none",
+          "boxShadow": "none",
+          "blur": 0,
+          "color": "#ffffff",
+          "fontFamily": "Arial, Helvetica, sans-serif",
+          "fontSize": 24,
+          "fontWeight": 400
+        },
+        "content": "",
+        "parentId": null,
+        "dataSourceId": null,
+        "mediaUrl": "/graphics/stickers/purple-butterfly.png"
+      },
+      {
+        "id": "study-section",
+        "type": "section",
+        "name": "Study Sets Section",
+        "visible": true,
+        "locked": false,
+        "animation": {
+          "type": "none",
+          "duration": 6,
+          "delay": 0,
+          "intensity": 1,
+          "infinite": true
+        },
+        "transform": {
+          "x": -3.0000034000000007,
+          "y": 942,
+          "width": 257,
+          "height": 53,
+          "rotation": 0,
+          "zIndex": 18
+        },
+        "appearance": {
+          "opacity": 0.23,
+          "backgroundColor": "rgba(20, 17, 52, 0.76)",
+          "borderColor": "#A995EB",
+          "borderWidth": 1,
+          "borderRadius": 26,
+          "borderStyle": "solid",
+          "boxShadow": "0 18px 60px rgba(8, 5, 29, 0.34)",
+          "blur": 0,
+          "color": "#fff5ff",
+          "fontFamily": "Arial, Helvetica, sans-serif",
+          "fontSize": 18,
+          "fontWeight": 400
+        },
+        "content": "STUDY SETS\n\nYour study sets and favorite learning materials can live here.",
+        "parentId": null,
+        "dataSourceId": null
+      }
+    ],
+    "studySets": {
+      "mode": "tray",
+      "trayIcon": "✧",
+      "trayLabel": "My Study Sets",
+      "trayObjectId": null
+    }
+  }
+}

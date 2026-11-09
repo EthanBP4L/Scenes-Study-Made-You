@@ -1,7 +1,7 @@
 
 "use client";
 
-import { useEffect, useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import Link from "next/link";
 import { usePathname } from "next/navigation";
 import FloatingControl from "./FloatingControl";
@@ -9,7 +9,7 @@ import FloatingControl from "./FloatingControl";
 const destinations = [
   {
     label: "Home",
-    href: "/",
+    href: "/home",
     symbol: "✦",
     description: "The SCENES homepage",
   },
@@ -33,36 +33,139 @@ const destinations = [
   },
 ];
 
+type Position = {
+  x: number;
+  y: number;
+};
+
+const GAP = 12;
+const EDGE = 12;
+
 export default function NavigationOrb() {
-  const [isExpanded, setIsExpanded] = useState(false);
+  const [isOpen, setIsOpen] = useState(false);
+  const [menuPosition, setMenuPosition] = useState<Position>({
+    x: 0,
+    y: 0,
+  });
+  const [positionReady, setPositionReady] = useState(false);
+
+  const menuRef = useRef<HTMLDivElement>(null);
   const pathname = usePathname();
 
   useEffect(() => {
-    setIsExpanded(false);
+    setIsOpen(false);
   }, [pathname]);
 
   useEffect(() => {
-    if (!isExpanded) return;
+    if (!isOpen) {
+      setPositionReady(false);
+      return;
+    }
+
+    function updateMenuPosition() {
+      const orb = document.getElementById("navigation-orb");
+      const menu = menuRef.current;
+
+      if (!orb || !menu) return;
+
+      const orbRect = orb.getBoundingClientRect();
+      const menuWidth = menu.offsetWidth;
+      const menuHeight = menu.offsetHeight;
+
+      const viewportWidth = window.innerWidth;
+      const viewportHeight = window.innerHeight;
+
+      const roomRight = viewportWidth - orbRect.right;
+      const roomLeft = orbRect.left;
+      const roomAbove = orbRect.top;
+      const roomBelow = viewportHeight - orbRect.bottom;
+
+      let x: number;
+      let y: number;
+
+      if (roomRight >= menuWidth + GAP + EDGE) {
+        x = orbRect.right + GAP;
+        y = orbRect.top;
+      } else if (roomLeft >= menuWidth + GAP + EDGE) {
+        x = orbRect.left - menuWidth - GAP;
+        y = orbRect.top;
+      } else if (roomAbove >= menuHeight + GAP + EDGE) {
+        x = orbRect.left + orbRect.width / 2 - menuWidth / 2;
+        y = orbRect.top - menuHeight - GAP;
+      } else if (roomBelow >= menuHeight + GAP + EDGE) {
+        x = orbRect.left + orbRect.width / 2 - menuWidth / 2;
+        y = orbRect.bottom + GAP;
+      } else {
+        // Use the side with the most room.
+        x =
+          roomRight >= roomLeft
+            ? orbRect.right + GAP
+            : orbRect.left - menuWidth - GAP;
+
+        y = orbRect.top;
+      }
+
+      x = Math.max(
+        EDGE,
+        Math.min(x, viewportWidth - menuWidth - EDGE)
+      );
+
+      y = Math.max(
+        EDGE,
+        Math.min(y, viewportHeight - menuHeight - EDGE)
+      );
+
+      setMenuPosition((previous) => {
+        if (
+          Math.abs(previous.x - x) < 0.5 &&
+          Math.abs(previous.y - y) < 0.5
+        ) {
+          return previous;
+        }
+
+        return { x, y };
+      });
+
+      setPositionReady(true);
+    }
+
+    let frame = 0;
+
+    function followOrb() {
+      updateMenuPosition();
+      frame = window.requestAnimationFrame(followOrb);
+    }
+
+    frame = window.requestAnimationFrame(followOrb);
 
     function handleEscape(event: KeyboardEvent) {
       if (event.key === "Escape") {
-        setIsExpanded(false);
+        setIsOpen(false);
       }
     }
 
     window.addEventListener("keydown", handleEscape);
+    window.addEventListener("resize", updateMenuPosition);
 
     return () => {
+      window.cancelAnimationFrame(frame);
       window.removeEventListener("keydown", handleEscape);
+      window.removeEventListener("resize", updateMenuPosition);
     };
-  }, [isExpanded]);
+  }, [isOpen]);
 
   return (
     <>
-      {isExpanded && (
+      {isOpen && (
         <div
+          ref={menuRef}
           id="navigation-orb-menu"
-          className="fixed left-1/2 top-1/2 z-[80] w-[min(340px,calc(100vw-32px))] max-h-[calc(100dvh-32px)] -translate-x-1/2 -translate-y-1/2 overflow-y-auto rounded-[28px] border border-purple-200/25 bg-[#20162f]/95 p-3 text-white shadow-[0_20px_80px_rgba(8,5,29,0.65)] backdrop-blur-2xl"
+          className="fixed z-[100] w-[min(300px,calc(100vw-24px))] max-h-[min(400px,calc(100dvh-24px))] overflow-y-auto rounded-[28px] border border-purple-200/25 bg-[#20162f]/95 p-3 text-white shadow-[0_20px_80px_rgba(8,5,29,0.65)] backdrop-blur-2xl"
+          style={{
+            left: menuPosition.x,
+            top: menuPosition.y,
+            visibility: positionReady ? "visible" : "hidden",
+          }}
         >
           <div className="border-b border-white/10 px-3 pb-3 pt-2">
             <p className="text-[10px] font-bold uppercase tracking-[0.35em] text-pink-200/75">
@@ -75,7 +178,7 @@ export default function NavigationOrb() {
 
             <button
               type="button"
-              onClick={() => setIsExpanded(false)}
+              onClick={() => setIsOpen(false)}
               className="mt-2 text-xs text-purple-200 underline underline-offset-4 hover:text-white"
             >
               Close menu
@@ -94,7 +197,7 @@ export default function NavigationOrb() {
                   key={destination.href}
                   href={destination.href}
                   aria-current={active ? "page" : undefined}
-                  onClick={() => setIsExpanded(false)}
+                  onClick={() => setIsOpen(false)}
                   className={`group flex items-center gap-3 rounded-2xl border px-3 py-3 transition ${
                     active
                       ? "border-purple-300/35 bg-purple-400/20"
@@ -139,20 +242,14 @@ export default function NavigationOrb() {
         <div id="navigation-orb">
           <button
             type="button"
-            aria-label={
-              isExpanded ? "Close navigation" : "Explore SCENES"
-            }
-            aria-expanded={isExpanded}
+            aria-label={isOpen ? "Close navigation" : "Explore SCENES"}
+            aria-expanded={isOpen}
             aria-controls="navigation-orb-menu"
-            onClick={() => setIsExpanded((current) => !current)}
-            className={`scene-orb flex cursor-grab items-center justify-center rounded-full border border-white/30 bg-white/10 text-white shadow-xl backdrop-blur-xl active:cursor-grabbing ${
-              isExpanded
-                ? "scene-orb-expanded"
-                : "scene-orb-collapsed"
-            }`}
+            onClick={() => setIsOpen((current) => !current)}
+            className="scene-orb scene-orb-collapsed flex cursor-grab items-center justify-center rounded-full border border-white/30 bg-white/10 text-white shadow-xl backdrop-blur-xl active:cursor-grabbing"
           >
             <span className="text-[10px] tracking-widest">
-              {isExpanded ? "CLOSE" : "EXPLORE"}
+              EXPLORE
             </span>
           </button>
         </div>
