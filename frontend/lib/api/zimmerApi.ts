@@ -1,5 +1,5 @@
 
-import type { ZimmerDraft } from "./zimmerTypes";
+import type { ZimmerDraft } from "../zimmerTypes";
 
 const API_BASE =
   process.env.NEXT_PUBLIC_API_URL ??

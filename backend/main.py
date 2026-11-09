@@ -26,15 +26,22 @@ from models.users import User
 from models.sessions import UserSession
 from models.profiles import Profile
 from models.rooms import Room
+from models.deck_social import DeckSocial, DeckComment, DeckLike
 
 from schemas.rooms import RoomWriteRequest, RoomDocument
 from schemas.flashcards import FlashcardCreate, FlashcardUpdate, FlashcardBatchCreate
 from schemas.flashcard_decks import DeckCreate, DeckUpdate, DeckCreateWithFlashcards
 from schemas.users import UserCreate, UserResponse, UserLogin
 from schemas.profiles import ProfileResponse, ProfileUpdate
+from schemas.deck_social import (
+    CommentCreate,
+    CommentUpdate,
+    CommentResponse,
+    DeckSocialResponse,
+)
 
 from sqlalchemy.orm import Session
-from sqlalchemy import select, or_, update
+from sqlalchemy import select, or_, update, func
 from sqlalchemy.exc import IntegrityError
 from sqlalchemy.orm.attributes import flag_modified
 
@@ -1400,3 +1407,460 @@ def save_my_room(
         "studySets": room.study_sets,
         "updatedAt": room.updated_at
     }
+@app.get(
+    "/api/v1/decks/{deck_id}/social",
+    response_model=DeckSocialResponse
+)
+def get_deck_social(
+    deck_id: int,
+    db: Session = Depends(get_db),
+    current_user: User | None = Depends(get_optional_user)
+):
+    deck = db.get(Deck, deck_id)
+
+    if deck is None:
+        raise HTTPException(
+            status_code=404,
+            detail="Deck not found."
+        )
+
+    is_owner = (
+        current_user is not None
+        and deck.owner_id == current_user.id
+    )
+
+    if not deck.is_public and not is_owner:
+        raise HTTPException(
+            status_code=404,
+            detail="Deck not found."
+        )
+
+    social = deck.social
+
+    if social is None:
+        return DeckSocialResponse(
+            deck_id=deck.id,
+            likes_count=0,
+            comments_count=0,
+            liked_by_me=False
+        )
+
+    liked_by_me = (
+        current_user is not None
+        and any(
+            like.user_id == current_user.id
+            for like in social.likes
+        )
+    )
+
+    return DeckSocialResponse(
+        deck_id=deck.id,
+        likes_count=len(social.likes),
+        comments_count=len(social.comments),
+        liked_by_me=liked_by_me
+    )
+
+# ============================================================
+# POST ROOM — SOCIAL INTERACTIONS
+# ============================================================
+
+
+def get_social_accessible_deck(
+    deck_id: int,
+    db: Session,
+    current_user: User | None
+) -> Deck:
+    """
+    Public decks are accessible to everyone.
+    Private decks are accessible only to their owner.
+    """
+
+    deck = db.get(Deck, deck_id)
+
+    if deck is None:
+        raise HTTPException(
+            status_code=404,
+            detail="Deck not found."
+        )
+
+    is_owner = (
+        current_user is not None
+        and deck.owner_id == current_user.id
+    )
+
+    if not deck.is_public and not is_owner:
+        raise HTTPException(
+            status_code=404,
+            detail="Deck not found."
+        )
+
+    return deck
+
+
+def get_social_interaction_deck(
+    deck_id: int,
+    db: Session
+) -> Deck:
+    """
+    Likes and comments are allowed only on public decks.
+    """
+
+    deck = db.get(Deck, deck_id)
+
+    if deck is None or not deck.is_public:
+        raise HTTPException(
+            status_code=404,
+            detail="Public deck not found."
+        )
+
+    return deck
+
+
+def serialize_deck_comment(comment: DeckComment) -> dict:
+    return {
+        "id": comment.id,
+        "user_id": comment.user_id,
+        "username": comment.author.username,
+        "content": comment.content,
+        "created_at": comment.created_at,
+        "updated_at": comment.updated_at
+    }
+
+
+# ============================================================
+# LIKE A PUBLIC DECK
+# ============================================================
+
+@app.post("/api/v1/decks/{deck_id}/like")
+def like_deck(
+    deck_id: int,
+    db: Session = Depends(get_db),
+    current_user: User = Depends(get_current_user)
+):
+    deck = get_social_interaction_deck(deck_id, db)
+
+    social = deck.social
+
+    if social is None:
+        raise HTTPException(
+            status_code=500,
+            detail="Deck social record is missing."
+        )
+
+    existing_like = db.scalar(
+        select(DeckLike).where(
+            DeckLike.social_id == social.id,
+            DeckLike.user_id == current_user.id
+        )
+    )
+
+    if existing_like is not None:
+        raise HTTPException(
+            status_code=409,
+            detail="You have already liked this deck."
+        )
+
+    new_like = DeckLike(
+        social_id=social.id,
+        user_id=current_user.id
+    )
+
+    try:
+        db.add(new_like)
+        db.commit()
+    except IntegrityError:
+        db.rollback()
+        raise HTTPException(
+            status_code=409,
+            detail="You have already liked this deck."
+        )
+    except Exception:
+        db.rollback()
+        raise HTTPException(
+            status_code=500,
+            detail="Unable to like deck."
+        )
+
+    likes_count = db.scalar(
+        select(func.count(DeckLike.id)).where(
+            DeckLike.social_id == social.id
+        )
+    )
+
+    return {
+        "deck_id": deck.id,
+        "liked_by_me": True,
+        "likes_count": likes_count
+    }
+
+
+# ============================================================
+# UNLIKE A PUBLIC DECK
+# ============================================================
+
+@app.delete("/api/v1/decks/{deck_id}/like")
+def unlike_deck(
+    deck_id: int,
+    db: Session = Depends(get_db),
+    current_user: User = Depends(get_current_user)
+):
+    deck = get_social_interaction_deck(deck_id, db)
+
+    social = deck.social
+
+    if social is None:
+        raise HTTPException(
+            status_code=500,
+            detail="Deck social record is missing."
+        )
+
+    existing_like = db.scalar(
+        select(DeckLike).where(
+            DeckLike.social_id == social.id,
+            DeckLike.user_id == current_user.id
+        )
+    )
+
+    if existing_like is None:
+        raise HTTPException(
+            status_code=404,
+            detail="You have not liked this deck."
+        )
+
+    try:
+        db.delete(existing_like)
+        db.commit()
+    except Exception:
+        db.rollback()
+        raise HTTPException(
+            status_code=500,
+            detail="Unable to unlike deck."
+        )
+
+    likes_count = db.scalar(
+        select(func.count(DeckLike.id)).where(
+            DeckLike.social_id == social.id
+        )
+    )
+
+    return {
+        "deck_id": deck.id,
+        "liked_by_me": False,
+        "likes_count": likes_count
+    }
+
+
+# ============================================================
+# GET DECK COMMENTS
+# ============================================================
+
+@app.get(
+    "/api/v1/decks/{deck_id}/comments",
+    response_model=list[CommentResponse]
+)
+def get_deck_comments(
+    deck_id: int,
+    db: Session = Depends(get_db),
+    current_user: User | None = Depends(get_optional_user)
+):
+    deck = get_social_accessible_deck(
+        deck_id,
+        db,
+        current_user
+    )
+
+    social = deck.social
+
+    if social is None:
+        return []
+
+    comments = db.scalars(
+        select(DeckComment)
+        .where(DeckComment.social_id == social.id)
+        .order_by(
+            DeckComment.created_at.asc(),
+            DeckComment.id.asc()
+        )
+    ).all()
+
+    return [
+        serialize_deck_comment(comment)
+        for comment in comments
+    ]
+
+
+# ============================================================
+# CREATE DECK COMMENT
+# ============================================================
+
+@app.post(
+    "/api/v1/decks/{deck_id}/comments",
+    response_model=CommentResponse,
+    status_code=201
+)
+def create_deck_comment(
+    deck_id: int,
+    comment_data: CommentCreate,
+    db: Session = Depends(get_db),
+    current_user: User = Depends(get_current_user)
+):
+    deck = get_social_interaction_deck(deck_id, db)
+
+    content = comment_data.content.strip()
+
+    if not content:
+        raise HTTPException(
+            status_code=422,
+            detail="Comment cannot be empty."
+        )
+
+    social = deck.social
+
+    if social is None:
+        raise HTTPException(
+            status_code=500,
+            detail="Deck social record is missing."
+        )
+
+    comment = DeckComment(
+        social_id=social.id,
+        user_id=current_user.id,
+        content=content
+    )
+
+    try:
+        db.add(comment)
+        db.commit()
+        db.refresh(comment)
+    except Exception:
+        db.rollback()
+        raise HTTPException(
+            status_code=500,
+            detail="Unable to create comment."
+        )
+
+    return serialize_deck_comment(comment)
+
+
+# ============================================================
+# EDIT OWN COMMENT
+# ============================================================
+
+@app.patch(
+    "/api/v1/decks/{deck_id}/comments/{comment_id}",
+    response_model=CommentResponse
+)
+def update_deck_comment(
+    deck_id: int,
+    comment_id: int,
+    comment_data: CommentUpdate,
+    db: Session = Depends(get_db),
+    current_user: User = Depends(get_current_user)
+):
+    deck = get_social_interaction_deck(deck_id, db)
+
+    social = deck.social
+
+    if social is None:
+        raise HTTPException(
+            status_code=404,
+            detail="Comment not found."
+        )
+
+    comment = db.scalar(
+        select(DeckComment).where(
+            DeckComment.id == comment_id,
+            DeckComment.social_id == social.id
+        )
+    )
+
+    if comment is None:
+        raise HTTPException(
+            status_code=404,
+            detail="Comment not found."
+        )
+
+    if comment.user_id != current_user.id:
+        raise HTTPException(
+            status_code=403,
+            detail="You can only edit your own comments."
+        )
+
+    content = comment_data.content.strip()
+
+    if not content:
+        raise HTTPException(
+            status_code=422,
+            detail="Comment cannot be empty."
+        )
+
+    comment.content = content
+    comment.updated_at = datetime.now(timezone.utc)
+
+    try:
+        db.commit()
+        db.refresh(comment)
+    except Exception:
+        db.rollback()
+        raise HTTPException(
+            status_code=500,
+            detail="Unable to update comment."
+        )
+
+    return serialize_deck_comment(comment)
+
+
+# ============================================================
+# DELETE OWN COMMENT
+# ============================================================
+
+@app.delete(
+    "/api/v1/decks/{deck_id}/comments/{comment_id}",
+    status_code=204
+)
+def delete_deck_comment(
+    deck_id: int,
+    comment_id: int,
+    db: Session = Depends(get_db),
+    current_user: User = Depends(get_current_user)
+):
+    deck = get_social_interaction_deck(deck_id, db)
+
+    social = deck.social
+
+    if social is None:
+        raise HTTPException(
+            status_code=404,
+            detail="Comment not found."
+        )
+
+    comment = db.scalar(
+        select(DeckComment).where(
+            DeckComment.id == comment_id,
+            DeckComment.social_id == social.id
+        )
+    )
+
+    if comment is None:
+        raise HTTPException(
+            status_code=404,
+            detail="Comment not found."
+        )
+
+    if comment.user_id != current_user.id:
+        raise HTTPException(
+            status_code=403,
+            detail="You can only delete your own comments."
+        )
+
+    try:
+        db.delete(comment)
+        db.commit()
+    except Exception:
+        db.rollback()
+        raise HTTPException(
+            status_code=500,
+            detail="Unable to delete comment."
+        )
+
+    return Response(status_code=204)

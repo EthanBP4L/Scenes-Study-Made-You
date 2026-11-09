@@ -1,37 +1,20 @@
 
 "use client";
 
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import ZimmerCanvas from "../../components/ZimmerCanvas";
 import RequireAuth from "../../components/RequireAuth";
+import DeckManagerModal from "../../components/DeckManagerModal";
 import {
   createDefaultZimmer,
   type ZimmerDraft,
 } from "../../lib/zimmerTypes";
-
-type Flashcard = {
-  id: string;
-  front: string;
-  back: string;
-};
-
-const previewCards: Flashcard[] = [
-  {
-    id: "preview-1",
-    front: "What is active recall?",
-    back: "Retrieving information from memory instead of simply rereading it.",
-  },
-  {
-    id: "preview-2",
-    front: "What is spaced repetition?",
-    back: "Reviewing information at increasing intervals to improve retention.",
-  },
-  {
-    id: "preview-3",
-    front: "What is the Pomodoro technique?",
-    back: "A study method that alternates focused work sessions with short breaks.",
-  },
-];
+import {
+  getMyDecks,
+  getDeck,
+  type DeckSummary,
+  type DeckDetail,
+} from "../../lib/api/decks";
 
 const flashcardRoom: ZimmerDraft = {
   ...createDefaultZimmer(),
@@ -52,17 +35,176 @@ const flashcardRoom: ZimmerDraft = {
 };
 
 export default function FlashcardsPage() {
+  const [decks, setDecks] = useState<DeckSummary[]>([]);
+  const [selectedDeck, setSelectedDeck] =
+    useState<DeckDetail | null>(null);
+
+  const [selectedDeckId, setSelectedDeckId] =
+    useState<number | null>(null);
+
   const [currentIndex, setCurrentIndex] = useState(0);
   const [flipped, setFlipped] = useState(false);
 
-  const currentCard = previewCards[currentIndex];
+  const [loadingDecks, setLoadingDecks] = useState(true);
+  const [loadingCards, setLoadingCards] = useState(false);
+  const [error, setError] = useState<string | null>(null);
+
+  const [managerOpen, setManagerOpen] = useState(false);
+  const [editingDeckId, setEditingDeckId] =
+    useState<number | null>(null);
+
+  const [refreshKey, setRefreshKey] = useState(0);
+  const [cardsRefreshKey, setCardsRefreshKey] = useState(0);
+
+  // Load the logged-in user's decks.
+  useEffect(() => {
+    let cancelled = false;
+
+    async function loadDecks() {
+      try {
+        setLoadingDecks(true);
+        setError(null);
+
+        const results = await getMyDecks();
+
+        if (cancelled) return;
+
+        setDecks(results);
+
+        setSelectedDeckId((previous) => {
+          if (results.length === 0) {
+            return null;
+          }
+
+          const stillExists = results.some(
+            (deck) => deck.id === previous
+          );
+
+          return stillExists
+            ? previous
+            : results[0].id;
+        });
+      } catch (err) {
+        if (cancelled) return;
+
+        setError(
+          err instanceof Error
+            ? err.message
+            : "Unable to load your decks."
+        );
+      } finally {
+        if (!cancelled) {
+          setLoadingDecks(false);
+        }
+      }
+    }
+
+    void loadDecks();
+
+    return () => {
+      cancelled = true;
+    };
+  }, [refreshKey]);
+
+  // Load or refresh the selected deck's flashcards.
+  useEffect(() => {
+    const deckId = selectedDeckId;
+
+    if (deckId === null) {
+      setSelectedDeck(null);
+      setLoadingCards(false);
+      setCurrentIndex(0);
+      setFlipped(false);
+      return;
+    }
+
+    let cancelled = false;
+
+    async function loadSelectedDeck() {
+      try {
+        setLoadingCards(true);
+        setError(null);
+        setSelectedDeck(null);
+        setCurrentIndex(0);
+        setFlipped(false);
+
+        const result = await getDeck(deckId!);
+
+        if (cancelled) return;
+
+        setSelectedDeck(result);
+      } catch (err) {
+        if (cancelled) return;
+
+        setError(
+          err instanceof Error
+            ? err.message
+            : "Unable to load this deck."
+        );
+      } finally {
+        if (!cancelled) {
+          setLoadingCards(false);
+        }
+      }
+    }
+
+    void loadSelectedDeck();
+
+    return () => {
+      cancelled = true;
+    };
+  }, [selectedDeckId, cardsRefreshKey]);
+
+  const cards = selectedDeck?.flashcards ?? [];
+  const currentCard = cards[currentIndex] ?? null;
+
+  function selectDeck(deckId: number) {
+    if (deckId === selectedDeckId) return;
+
+    setSelectedDeckId(deckId);
+  }
 
   function goToCard(index: number) {
-    if (index < 0 || index >= previewCards.length) return;
+    if (index < 0 || index >= cards.length) return;
 
     setFlipped(false);
     setCurrentIndex(index);
   }
+
+  function openCreateDeck() {
+    setEditingDeckId(null);
+    setManagerOpen(true);
+  }
+
+  function openEditDeck() {
+    if (selectedDeckId === null) return;
+
+    setEditingDeckId(selectedDeckId);
+    setManagerOpen(true);
+  }
+
+  function closeDeckManager() {
+    setManagerOpen(false);
+    setEditingDeckId(null);
+  }
+
+  function handleDeckSaved(deckId?: number) {
+    if (deckId !== undefined) {
+      setSelectedDeckId(deckId);
+    } else {
+      setSelectedDeckId(null);
+      setSelectedDeck(null);
+    }
+
+    // Refresh the sidebar and selected deck contents.
+    setRefreshKey((previous) => previous + 1);
+    setCardsRefreshKey((previous) => previous + 1);
+  }
+
+  const progress =
+    cards.length > 0
+      ? ((currentIndex + 1) / cards.length) * 100
+      : 0;
 
   return (
     <RequireAuth>
@@ -71,6 +213,13 @@ export default function FlashcardsPage() {
           pageName="Flashcard Room"
           initialRoom={flashcardRoom}
           showNavigation={true}
+        />
+
+        <DeckManagerModal
+          open={managerOpen}
+          onClose={closeDeckManager}
+          deckId={editingDeckId}
+          onSaved={handleDeckSaved}
         />
 
         <div className="pointer-events-none absolute inset-x-0 top-0 z-10 mx-auto max-w-[1200px] px-5 pb-20 pt-14 sm:px-12">
@@ -82,8 +231,12 @@ export default function FlashcardsPage() {
 
               <h1 className="mt-4 text-4xl font-black tracking-tight text-white sm:text-6xl">
                 Flashcard{" "}
-                <span className="text-[#efb4e8]">Room</span>
-                <span className="ml-2 text-purple-200">✦</span>
+                <span className="text-[#efb4e8]">
+                  Room
+                </span>
+                <span className="ml-2 text-purple-200">
+                  ✦
+                </span>
               </h1>
 
               <p className="mx-auto mt-4 max-w-md text-sm leading-7 text-purple-100/65">
@@ -99,31 +252,73 @@ export default function FlashcardsPage() {
                   <h2 className="text-lg font-bold text-white">
                     Your Decks
                   </h2>
-                  <span className="text-pink-200">✧</span>
+
+                  <span className="text-pink-200">
+                    ✧
+                  </span>
                 </div>
 
-                <div className="rounded-2xl border border-pink-200/30 bg-pink-200/10 p-4">
-                  <p className="text-sm font-semibold text-white">
-                    Preview Deck
-                  </p>
+                {loadingDecks ? (
+                  <div className="rounded-2xl border border-purple-200/20 bg-white/10 p-4">
+                    <p className="text-sm text-purple-100/60">
+                      Loading your decks...
+                    </p>
+                  </div>
+                ) : decks.length > 0 ? (
+                  <div className="space-y-3">
+                    {decks.map((deck) => {
+                      const isSelected =
+                        deck.id === selectedDeckId;
 
-                  <p className="mt-2 text-xs text-purple-100/60">
-                    {previewCards.length} sample cards
-                  </p>
-                </div>
+                      return (
+                        <button
+                          key={deck.id}
+                          type="button"
+                          onClick={() =>
+                            selectDeck(deck.id)
+                          }
+                          aria-pressed={isSelected}
+                          className={`w-full rounded-2xl border p-4 text-left transition ${
+                            isSelected
+                              ? "border-pink-200/30 bg-pink-200/10"
+                              : "border-purple-200/20 bg-white/5 hover:bg-white/10"
+                          }`}
+                        >
+                          <p className="break-words text-sm font-semibold text-white">
+                            {deck.name}
+                          </p>
 
-                <div className="mt-4 rounded-2xl border border-dashed border-purple-200/20 px-4 py-6 text-center">
-                  <p className="text-xs leading-6 text-purple-100/50">
-                    Your saved decks will appear here when
-                    connected to your backend.
-                  </p>
-                </div>
+                          {deck.description && (
+                            <p className="mt-2 break-words text-xs leading-5 text-purple-100/60">
+                              {deck.description}
+                            </p>
+                          )}
+
+                          <p className="mt-2 text-xs text-purple-100/50">
+                            {deck.is_public
+                              ? "Public deck"
+                              : "Private deck"}
+                          </p>
+                        </button>
+                      );
+                    })}
+                  </div>
+                ) : (
+                  <div className="rounded-2xl border border-dashed border-purple-200/20 px-4 py-6 text-center">
+                    <p className="text-xs leading-6 text-purple-100/60">
+                      You don't have any saved decks yet.
+                    </p>
+
+                    <p className="mt-2 text-xs leading-6 text-purple-100/40">
+                      Create a deck to start studying.
+                    </p>
+                  </div>
+                )}
 
                 <button
                   type="button"
-                  disabled
-                  title="Awaiting backend integration"
-                  className="mt-5 w-full cursor-not-allowed rounded-2xl border border-purple-200/20 bg-white/10 px-4 py-3 text-sm font-semibold text-purple-100/50"
+                  onClick={openCreateDeck}
+                  className="mt-5 w-full rounded-2xl border border-pink-200/30 bg-pink-200/10 px-4 py-3 text-sm font-semibold text-white transition hover:bg-pink-200/20"
                 >
                   + New Deck
                 </button>
@@ -137,145 +332,207 @@ export default function FlashcardsPage() {
                       CURRENT DECK
                     </p>
 
-                    <h2 className="mt-2 text-xl font-bold text-white">
-                      Preview Deck
+                    <h2 className="mt-2 break-words text-xl font-bold text-white">
+                      {selectedDeck?.name ??
+                        (loadingDecks || loadingCards
+                          ? "Loading..."
+                          : "No Deck Selected")}
                     </h2>
+
+                    {selectedDeck && (
+                      <button
+                        type="button"
+                        onClick={openEditDeck}
+                        className="mt-3 rounded-xl border border-purple-200/25 bg-white/10 px-4 py-2 text-xs font-semibold text-purple-100 transition hover:bg-white/20"
+                      >
+                        Edit Deck ✧
+                      </button>
+                    )}
                   </div>
 
                   <div className="rounded-full border border-white/15 bg-white/10 px-4 py-2 text-xs text-purple-100">
-                    {currentIndex + 1} / {previewCards.length}
+                    {currentCard
+                      ? `${currentIndex + 1} / ${cards.length}`
+                      : `0 / ${cards.length}`}
                   </div>
                 </div>
 
-                {/* Glass flashcard */}
-                <div
-                  className="mx-auto w-full max-w-[580px]"
-                  style={{ perspective: "1200px" }}
-                >
-                  <button
-                    type="button"
-                    onClick={() => setFlipped((value) => !value)}
-                    aria-label={
-                      flipped
-                        ? "Show flashcard question"
-                        : "Reveal flashcard answer"
-                    }
-                    className="block h-[330px] w-full cursor-pointer text-left sm:h-[370px]"
+                {error && (
+                  <div
+                    role="alert"
+                    className="mb-6 rounded-2xl border border-red-300/30 bg-red-300/10 p-4 text-sm text-red-100"
                   >
+                    {error}
+                  </div>
+                )}
+
+                {loadingDecks || loadingCards ? (
+                  <div className="flex h-[330px] items-center justify-center rounded-[32px] border border-white/20 bg-white/[0.08] text-center text-purple-100/70 sm:h-[370px]">
+                    Loading flashcards...
+                  </div>
+                ) : !currentCard ? (
+                  <div className="flex h-[330px] flex-col items-center justify-center rounded-[32px] border border-white/20 bg-white/[0.08] px-8 text-center sm:h-[370px]">
+                    <span className="mb-5 text-4xl text-pink-200">
+                      ✧
+                    </span>
+
+                    <h3 className="text-xl font-semibold text-white">
+                      {selectedDeck
+                        ? "This deck is empty"
+                        : "Your study space awaits"}
+                    </h3>
+
+                    <p className="mt-4 max-w-sm text-sm leading-7 text-purple-100/60">
+                      {selectedDeck
+                        ? "Add flashcards to this deck to start studying."
+                        : "Choose a saved deck to begin your flashcard session."}
+                    </p>
+                  </div>
+                ) : (
+                  <>
+                    {/* Glass flashcard */}
                     <div
-                      className="relative h-full w-full transition-transform duration-700"
+                      className="mx-auto w-full max-w-[580px]"
                       style={{
-                        transformStyle: "preserve-3d",
-                        transform: flipped
-                          ? "rotateY(180deg)"
-                          : "rotateY(0deg)",
+                        perspective: "1200px",
                       }}
                     >
-                      {/* Front */}
-                      <div
-                        className="absolute inset-0 flex flex-col items-center justify-center overflow-hidden rounded-[32px] border border-white/30 bg-white/[0.12] px-8 text-center shadow-[0_20px_80px_rgba(10,5,30,0.22)] backdrop-blur-2xl"
-                        style={{
-                          backfaceVisibility: "hidden",
-                          WebkitBackfaceVisibility: "hidden",
-                        }}
+                      <button
+                        type="button"
+                        onClick={() =>
+                          setFlipped((value) => !value)
+                        }
+                        aria-label={
+                          flipped
+                            ? "Show flashcard question"
+                            : "Reveal flashcard answer"
+                        }
+                        className="block h-[330px] w-full cursor-pointer text-left sm:h-[370px]"
                       >
                         <div
-                          aria-hidden="true"
-                          className="pointer-events-none absolute -right-12 -top-12 h-48 w-48 rounded-full bg-pink-200/15 blur-[55px]"
-                        />
+                          className="relative h-full w-full transition-transform duration-700"
+                          style={{
+                            transformStyle: "preserve-3d",
+                            transform: flipped
+                              ? "rotateY(180deg)"
+                              : "rotateY(0deg)",
+                          }}
+                        >
+                          {/* Front */}
+                          <div
+                            className="absolute inset-0 flex flex-col items-center justify-center overflow-hidden rounded-[32px] border border-white/30 bg-white/[0.12] px-8 text-center shadow-[0_20px_80px_rgba(10,5,30,0.22)] backdrop-blur-2xl"
+                            style={{
+                              backfaceVisibility: "hidden",
+                              WebkitBackfaceVisibility:
+                                "hidden",
+                            }}
+                          >
+                            <div
+                              aria-hidden="true"
+                              className="pointer-events-none absolute -right-12 -top-12 h-48 w-48 rounded-full bg-pink-200/15 blur-[55px]"
+                            />
 
-                        <p className="mb-8 text-xs font-bold uppercase tracking-[0.3em] text-pink-100/75">
-                          QUESTION ✧
-                        </p>
+                            <p className="mb-8 text-xs font-bold uppercase tracking-[0.3em] text-pink-100/75">
+                              QUESTION ✧
+                            </p>
 
-                        <h3 className="relative max-w-md text-2xl font-semibold leading-relaxed text-white sm:text-3xl">
-                          {currentCard.front}
-                        </h3>
+                            <h3 className="relative max-w-md text-2xl font-semibold leading-relaxed text-white sm:text-3xl">
+                              {currentCard.question}
+                            </h3>
 
-                        <p className="absolute bottom-8 text-xs tracking-widest text-purple-100/55">
-                          TAP TO REVEAL
-                        </p>
-                      </div>
+                            <p className="absolute bottom-8 text-xs tracking-widest text-purple-100/55">
+                              TAP TO REVEAL
+                            </p>
+                          </div>
 
-                      {/* Back */}
-                      <div
-                        className="absolute inset-0 flex flex-col items-center justify-center overflow-hidden rounded-[32px] border border-pink-200/35 bg-[#a96fce]/[0.18] px-8 text-center shadow-[0_20px_80px_rgba(10,5,30,0.22)] backdrop-blur-2xl"
-                        style={{
-                          transform: "rotateY(180deg)",
-                          backfaceVisibility: "hidden",
-                          WebkitBackfaceVisibility: "hidden",
-                        }}
-                      >
+                          {/* Back */}
+                          <div
+                            className="absolute inset-0 flex flex-col items-center justify-center overflow-hidden rounded-[32px] border border-pink-200/35 bg-[#a96fce]/[0.18] px-8 text-center shadow-[0_20px_80px_rgba(10,5,30,0.22)] backdrop-blur-2xl"
+                            style={{
+                              transform: "rotateY(180deg)",
+                              backfaceVisibility: "hidden",
+                              WebkitBackfaceVisibility:
+                                "hidden",
+                            }}
+                          >
+                            <div
+                              aria-hidden="true"
+                              className="pointer-events-none absolute -left-10 -bottom-10 h-48 w-48 rounded-full bg-purple-300/20 blur-[55px]"
+                            />
+
+                            <p className="mb-8 text-xs font-bold uppercase tracking-[0.3em] text-pink-100/75">
+                              ANSWER ✦
+                            </p>
+
+                            <h3 className="relative max-w-md text-xl font-medium leading-relaxed text-white sm:text-2xl">
+                              {currentCard.answer}
+                            </h3>
+
+                            <p className="absolute bottom-8 text-xs tracking-widest text-purple-100/55">
+                              TAP TO FLIP BACK
+                            </p>
+                          </div>
+                        </div>
+                      </button>
+                    </div>
+
+                    {/* Progress */}
+                    <div className="mx-auto mt-7 max-w-[580px]">
+                      <div className="h-1.5 overflow-hidden rounded-full bg-white/10">
                         <div
-                          aria-hidden="true"
-                          className="pointer-events-none absolute -left-10 -bottom-10 h-48 w-48 rounded-full bg-purple-300/20 blur-[55px]"
+                          className="h-full rounded-full bg-gradient-to-r from-[#a875e8] to-[#efb4e8] transition-all duration-300"
+                          style={{
+                            width: `${progress}%`,
+                          }}
                         />
-
-                        <p className="mb-8 text-xs font-bold uppercase tracking-[0.3em] text-pink-100/75">
-                          ANSWER ✦
-                        </p>
-
-                        <h3 className="relative max-w-md text-xl font-medium leading-relaxed text-white sm:text-2xl">
-                          {currentCard.back}
-                        </h3>
-
-                        <p className="absolute bottom-8 text-xs tracking-widest text-purple-100/55">
-                          TAP TO FLIP BACK
-                        </p>
                       </div>
                     </div>
-                  </button>
-                </div>
 
-                {/* Progress */}
-                <div className="mx-auto mt-7 max-w-[580px]">
-                  <div className="h-1.5 overflow-hidden rounded-full bg-white/10">
-                    <div
-                      className="h-full rounded-full bg-gradient-to-r from-[#a875e8] to-[#efb4e8] transition-all duration-300"
-                      style={{
-                        width: `${
-                          ((currentIndex + 1) /
-                            previewCards.length) *
-                          100
-                        }%`,
-                      }}
-                    />
-                  </div>
-                </div>
+                    {/* Flashcard controls */}
+                    <div className="mt-7 flex flex-wrap items-center justify-center gap-3">
+                      <button
+                        type="button"
+                        onClick={() =>
+                          goToCard(currentIndex - 1)
+                        }
+                        disabled={currentIndex === 0}
+                        className="rounded-2xl border border-white/20 bg-white/10 px-6 py-3 text-sm font-semibold text-white backdrop-blur-xl transition hover:bg-white/20 disabled:cursor-not-allowed disabled:opacity-35"
+                      >
+                        ← Previous
+                      </button>
 
-                {/* Flashcard controls */}
-                <div className="mt-7 flex flex-wrap items-center justify-center gap-3">
-                  <button
-                    type="button"
-                    onClick={() => goToCard(currentIndex - 1)}
-                    disabled={currentIndex === 0}
-                    className="rounded-2xl border border-white/20 bg-white/10 px-6 py-3 text-sm font-semibold text-white backdrop-blur-xl transition hover:bg-white/20 disabled:cursor-not-allowed disabled:opacity-35"
-                  >
-                    ← Previous
-                  </button>
+                      <button
+                        type="button"
+                        onClick={() =>
+                          setFlipped((value) => !value)
+                        }
+                        className="rounded-2xl border border-pink-200/30 bg-gradient-to-r from-[#8052b9]/70 to-[#b46cb3]/70 px-7 py-3 text-sm font-bold text-white backdrop-blur-xl transition hover:brightness-110"
+                      >
+                        Flip Card ✧
+                      </button>
 
-                  <button
-                    type="button"
-                    onClick={() => setFlipped((value) => !value)}
-                    className="rounded-2xl border border-pink-200/30 bg-gradient-to-r from-[#8052b9]/70 to-[#b46cb3]/70 px-7 py-3 text-sm font-bold text-white backdrop-blur-xl transition hover:brightness-110"
-                  >
-                    Flip Card ✧
-                  </button>
-
-                  <button
-                    type="button"
-                    onClick={() => goToCard(currentIndex + 1)}
-                    disabled={
-                      currentIndex === previewCards.length - 1
-                    }
-                    className="rounded-2xl border border-white/20 bg-white/10 px-6 py-3 text-sm font-semibold text-white backdrop-blur-xl transition hover:bg-white/20 disabled:cursor-not-allowed disabled:opacity-35"
-                  >
-                    Next →
-                  </button>
-                </div>
+                      <button
+                        type="button"
+                        onClick={() =>
+                          goToCard(currentIndex + 1)
+                        }
+                        disabled={
+                          currentIndex === cards.length - 1
+                        }
+                        className="rounded-2xl border border-white/20 bg-white/10 px-6 py-3 text-sm font-semibold text-white backdrop-blur-xl transition hover:bg-white/20 disabled:cursor-not-allowed disabled:opacity-35"
+                      >
+                        Next →
+                      </button>
+                    </div>
+                  </>
+                )}
 
                 <p className="mt-6 text-center text-xs text-purple-100/45">
-                  Sample cards for frontend layout preview
+                  {selectedDeck
+                    ? `${cards.length} flashcard${
+                        cards.length === 1 ? "" : "s"
+                      } in this deck`
+                    : "Your personal flashcard study space"}
                 </p>
               </section>
             </div>
