@@ -10,16 +10,23 @@ import {
   createZimmerObject,
 } from "../lib/zimmerTypes";
 import ZimmerObjectRenderer from "./ZimmerObjectRenderer";
+import FloatingControl from "./FloatingControl";
+import ZimmerEditor from "./ZimmerEditor";
+
+const CLOUD_GIF = "/graphics/backgrounds/lavender-clouds-v2.gif";
+
+const ORIGINAL_GRADIENT =
+  "radial-gradient(ellipse at 72% 18%, #6b4d8d 0%, #3a2959 38%, #18152f 72%, #0b1025 100%)";
 
 function createDemoZimmer(): ZimmerDraft {
   const room = createDefaultZimmer();
 
   room.name = "My Zimmer";
   room.background = {
-    ...room.background,
     type: "gradient",
-    gradient:
-      "radial-gradient(ellipse at 72% 18%, #6b4d8d 0%, #3a2959 38%, #18152f 72%, #0b1025 100%)",
+    color: "#080817",
+    gradient: ORIGINAL_GRADIENT,
+    mediaUrl: null,
   };
 
   function addTextBlock(
@@ -110,68 +117,80 @@ function createDemoZimmer(): ZimmerDraft {
     room.objects.push(object);
   }
 
-  // Existing default room layout
+  // Exact existing default layout.
+  // Positions and sizes are intentionally unchanged.
+
   addTextBlock(
-    "intro-line", "Intro Line",
+    "intro-line",
+    "Intro Line",
     "✦ YOUR CORNER OF SCENES ✦",
     85, 60, 400, 36, 15, "#efd6ff", 4, 0, 700
   );
 
   addTextBlock(
-    "username-title", "Username Title",
+    "username-title",
+    "Username Title",
     "@yourname",
     78, 104, 560, 90, 68, "#ffe4fb", 8, -2, 900
   );
 
   addTextBlock(
-    "header-status", "Header Status",
+    "header-status",
+    "Header Status",
     "say something about yourself here",
     95, 190, 460, 42, 21, "#e8d9ff", 7, -1, 500
   );
 
   addTextBlock(
-    "layout-note", "Layout Note",
+    "layout-note",
+    "Layout Note",
     "Move, edit, resize, restyle, or delete anything.",
     92, 228, 470, 34, 15, "#d2c3ea", 6, 0, 500
   );
 
   addSection(
-    "about-section", "About Section",
+    "about-section",
+    "About Section",
     "ABOUT ME\n\nTell people who you are, what you love, what you're studying, or whatever makes this space feel like yours.\n\n✦ This section is fully editable.",
     85, 315, 385, 250, 6, -2,
     "rgba(255, 234, 249, 0.14)", "#f0c0ff", 18
   );
 
   addSection(
-    "favorites-section", "Favorites Section",
+    "favorites-section",
+    "Favorites Section",
     "CURRENTLY INTO\n\n• favorite music\n• favorite shows\n• favorite topic\n• latest obsession\n\n✦ Keep this, change it, or replace it.",
     510, 300, 280, 215, 5, 2,
     "rgba(33, 25, 68, 0.72)", "#b8a3ef", 18
   );
 
   addSection(
-    "decor-section", "Decor Section",
+    "decor-section",
+    "Decor Section",
     "GRAPHICS + DECOR\n\nAdd stickers, images, and visual elements here — or anywhere else in your Zimmer.\n\n✦ This area hints at what's possible.",
     820, 265, 300, 215, 5, -2,
     "rgba(255, 244, 232, 0.12)", "#ffd7ef", 18
   );
 
   addSection(
-    "study-section", "Study Sets Section",
+    "study-section",
+    "Study Sets Section",
     "STUDY SETS\n\nYour sets can live on the page or inside a tray.\n\nFor the prototype, this shows where your study identity can appear inside your personal room.",
     505, 560, 355, 165, 5, -1,
     "rgba(20, 17, 52, 0.76)", "#a995eb", 18
   );
 
   addSection(
-    "customize-section", "Customize Section",
+    "customize-section",
+    "Customize Section",
     "START HERE\n\nUse the editor to:\n• change colors\n• edit text\n• move sections\n• add graphics\n• make the room fully yours",
     85, 590, 355, 155, 5, 1,
     "rgba(255, 225, 250, 0.11)", "#efc6ff", 18
   );
 
   addTextBlock(
-    "footer-line", "Footer Line",
+    "footer-line",
+    "Footer Line",
     "your room can be clean, chaotic, dreamy, academic, playful — whatever you want",
     505, 742, 575, 36, 16, "#d7c9f0", 5, 0, 500
   );
@@ -204,7 +223,8 @@ function createDemoZimmer(): ZimmerDraft {
   );
 
   addSticker(
-    "chain-sticker", "Silver Chain", "silver-chain.png",
+    "chain-sticker", "Silver Chain",
+    "silver-chain.png",
     875, 520, 175, 115, -10, 4
   );
 
@@ -218,10 +238,41 @@ type ObjectPosition = {
   height: number;
 };
 
+function safeMediaUrl(url: string): string | null {
+  const trimmed = url.trim();
+
+  if (trimmed.startsWith("/") && !trimmed.startsWith("//")) {
+    return trimmed;
+  }
+
+  try {
+    const parsed = new URL(trimmed);
+    if (parsed.protocol === "https:" || parsed.protocol === "http:") {
+      return parsed.href;
+    }
+  } catch {
+    return null;
+  }
+
+  return null;
+}
+
+function hexColor(value: string): string {
+  return /^#[0-9a-fA-F]{6}$/.test(value)
+    ? value
+    : "#ffffff";
+}
+
+const toolButton =
+  "rounded-full border border-white/10 bg-white/10 px-4 py-2 text-sm text-white transition hover:bg-white/20 disabled:cursor-not-allowed disabled:opacity-40";
+
 export default function ZimmerCanvas() {
   const [room, setRoom] = useState<ZimmerDraft>(createDemoZimmer);
   const [selectedId, setSelectedId] = useState<string | null>(null);
   const [isEditing, setIsEditing] = useState(false);
+  const [editorOpen, setEditorOpen] = useState(false);
+  const [backgroundUrl, setBackgroundUrl] = useState("");
+  const [backgroundError, setBackgroundError] = useState("");
 
   const canvasRef = useRef<HTMLDivElement>(null);
   const pendingTransform = useRef<ObjectPosition | null>(null);
@@ -229,36 +280,27 @@ export default function ZimmerCanvas() {
   const selectedObject =
     room.objects.find((object) => object.id === selectedId) ?? null;
 
+  const maxObjectsReached = room.objects.length >= 100;
+
   function toggleEditMode() {
     setIsEditing((current) => !current);
     setSelectedId(null);
     pendingTransform.current = null;
   }
 
-  // Delete or Backspace removes a selected object.
-  // Typing inside an input or textarea is always protected.
   useEffect(() => {
     function handleKeyDown(event: KeyboardEvent) {
       if (!isEditing || !selectedId) return;
-
-      if (event.key !== "Delete" && event.key !== "Backspace") {
-        return;
-      }
-
-      if (event.ctrlKey || event.metaKey || event.altKey) {
-        return;
-      }
+      if (event.key !== "Delete" && event.key !== "Backspace") return;
+      if (event.ctrlKey || event.metaKey || event.altKey) return;
 
       const target = event.target;
 
-      if (target instanceof HTMLElement) {
-        if (
-          target.closest(
-            "input, textarea, select, [contenteditable]"
-          )
-        ) {
-          return;
-        }
+      if (
+        target instanceof HTMLElement &&
+        target.closest("input, textarea, select, [contenteditable]")
+      ) {
+        return;
       }
 
       const selected = room.objects.find(
@@ -326,7 +368,7 @@ export default function ZimmerCanvas() {
   }
 
   function duplicateSelected() {
-    if (!selectedObject || room.objects.length >= 100) return;
+    if (!selectedObject || maxObjectsReached) return;
 
     const copy: ZimmerObject = {
       ...selectedObject,
@@ -354,9 +396,7 @@ export default function ZimmerCanvas() {
     setSelectedId(copy.id);
   }
 
-  function moveSelectedLayer(
-    direction: "forward" | "backward"
-  ) {
+  function moveSelectedLayer(direction: "forward" | "backward") {
     if (!selectedId) return;
 
     setRoom((current) => {
@@ -420,7 +460,7 @@ export default function ZimmerCanvas() {
   function updateSelectedAppearance(
     changes: Partial<ZimmerObject["appearance"]>
   ) {
-    if (!selectedId) return;
+    if (!selectedId || selectedObject?.locked) return;
 
     setRoom((current) => ({
       ...current,
@@ -439,7 +479,7 @@ export default function ZimmerCanvas() {
   }
 
   function updateSelectedContent(content: string) {
-    if (!selectedId) return;
+    if (!selectedId || selectedObject?.locked) return;
 
     setRoom((current) => ({
       ...current,
@@ -452,7 +492,7 @@ export default function ZimmerCanvas() {
   }
 
   function addText() {
-    if (room.objects.length >= 100) return;
+    if (maxObjectsReached) return;
 
     const object = createZimmerObject(
       crypto.randomUUID(),
@@ -461,7 +501,6 @@ export default function ZimmerCanvas() {
     );
 
     object.content = "Your text here";
-
     object.transform.zIndex =
       Math.max(
         0,
@@ -482,7 +521,7 @@ export default function ZimmerCanvas() {
         asset.id === assetId && asset.category === "stickers"
     );
 
-    if (!sticker || room.objects.length >= 100) return;
+    if (!sticker || maxObjectsReached) return;
 
     const object = createZimmerObject(
       crypto.randomUUID(),
@@ -519,14 +558,230 @@ export default function ZimmerCanvas() {
     setSelectedId(object.id);
   }
 
-  const hexColor = (value: string) =>
-    /^#[0-9a-fA-F]{6}$/.test(value)
-      ? value
-      : "#ffffff";
+  function addCloudGif() {
+    if (maxObjectsReached) return;
+
+    const object = createZimmerObject(
+      crypto.randomUUID(),
+      "gif",
+      "Lavender Clouds"
+    );
+
+    object.mediaUrl = CLOUD_GIF;
+
+    object.transform = {
+      x: 580,
+      y: 335,
+      width: 250,
+      height: 200,
+      rotation: 0,
+      zIndex:
+        Math.max(
+          0,
+          ...room.objects.map((item) => item.transform.zIndex)
+        ) + 1,
+    };
+
+    object.appearance = {
+      ...object.appearance,
+      backgroundColor: "transparent",
+      borderWidth: 0,
+      borderRadius: 22,
+      boxShadow: "0 12px 45px rgba(0,0,0,0.3)",
+    };
+
+    setRoom((current) => ({
+      ...current,
+      objects: [...current.objects, object],
+    }));
+
+    setSelectedId(object.id);
+  }
+
+  function setBackgroundMode(mode: "gradient" | "color" | "gif") {
+    setBackgroundError("");
+
+    setRoom((current) => ({
+      ...current,
+      background: {
+        ...current.background,
+        type: mode,
+        gradient: ORIGINAL_GRADIENT,
+        mediaUrl: mode === "gif" ? CLOUD_GIF : null,
+      },
+    }));
+  }
+
+  function applyCustomBackground() {
+    const url = safeMediaUrl(backgroundUrl);
+
+    if (!url) {
+      setBackgroundError(
+        "Enter a valid image/GIF URL or a local path beginning with /."
+      );
+      return;
+    }
+
+    const type = /\.gif(?:[?#]|$)/i.test(url) ? "gif" : "image";
+
+    setRoom((current) => ({
+      ...current,
+      background: {
+        ...current.background,
+        type,
+        mediaUrl: url,
+      },
+    }));
+
+    setBackgroundError("");
+  }
+
+  function addGifFromUrl(url: string) {
+    const safeUrl = safeMediaUrl(url);
+    if (!safeUrl || room.objects.length >= 100) return;
+
+    const object = createZimmerObject(
+      crypto.randomUUID(),
+      "gif",
+      "GIF"
+    );
+
+    object.mediaUrl = safeUrl;
+
+    object.transform = {
+      x: 580,
+      y: 335,
+      width: 250,
+      height: 200,
+      rotation: 0,
+      zIndex:
+        Math.max(
+          0,
+          ...room.objects.map((item) => item.transform.zIndex)
+        ) + 1,
+    };
+
+    object.appearance = {
+      ...object.appearance,
+      backgroundColor: "transparent",
+      borderWidth: 0,
+      borderRadius: 22,
+      boxShadow: "0 12px 45px rgba(0,0,0,0.3)",
+    };
+
+    setRoom((current) => ({
+      ...current,
+      objects: [...current.objects, object],
+    }));
+
+    setSelectedId(object.id);
+  }
+
+  function setEditorBackground(
+    type: "gradient" | "color" | "image" | "gif",
+    value?: string
+  ) {
+    if ((type === "gif" || type === "image") &&
+        (!value || !safeMediaUrl(value))) {
+      return;
+    }
+
+    setRoom((current) => ({
+      ...current,
+      background: {
+        ...current.background,
+        type,
+        color:
+          type === "color"
+            ? value ?? current.background.color
+            : current.background.color,
+        gradient:
+          type === "gradient"
+            ? value ?? ORIGINAL_GRADIENT
+            : current.background.gradient,
+        mediaUrl:
+          type === "gif" || type === "image"
+            ? value ?? null
+            : null,
+      },
+    }));
+  }
+
+  function updateSelectedObject(
+    changes: Partial<ZimmerObject>
+  ) {
+    if (!selectedId) return;
+
+    setRoom((current) => ({
+      ...current,
+      objects: current.objects.map((object) =>
+        object.id === selectedId && !object.locked
+          ? {
+              ...object,
+              ...changes,
+              id: object.id,
+              locked: object.locked,
+              transform: object.transform,
+            }
+          : object
+      ),
+    }));
+  }
+
+  function addStickerFromPicker() {
+    const stickers = graphicsLibrary.filter(
+      (asset) => asset.category === "stickers"
+    );
+
+    if (stickers.length === 0) return;
+
+    const choices = stickers
+      .map((asset, index) => `${index + 1}. ${asset.name}`)
+      .join("\n");
+
+    const answer = window.prompt(
+      `Choose a sticker by number:\n\n${choices}`,
+      "1"
+    );
+
+    if (answer === null) return;
+
+    const number = Number(answer);
+
+    if (
+      !Number.isInteger(number) ||
+      number < 1 ||
+      number > stickers.length
+    ) {
+      window.alert("Please choose a valid sticker number.");
+      return;
+    }
+
+    addSticker(stickers[number - 1].id);
+  }
+
+  const backgroundMedia =
+    room.background.mediaUrl
+      ? safeMediaUrl(room.background.mediaUrl)
+      : null;
+
+  const backgroundStyle: React.CSSProperties = {
+    backgroundColor: room.background.color,
+    backgroundImage:
+      room.background.type === "gradient"
+        ? room.background.gradient
+        : (room.background.type === "gif" ||
+            room.background.type === "image") &&
+          backgroundMedia
+        ? `url("${backgroundMedia.replace(/["\\]/g, "")}")`
+        : "none",
+    backgroundSize: "cover",
+    backgroundPosition: "center",
+    backgroundRepeat: "no-repeat",
+  };
 
   return (
     <div className="relative min-h-screen bg-[#080817] text-white">
-      {/* Scrollable content without changing the object schema */}
       <style>{`
         .zimmer-room [data-zimmer-object-type="section"] > div > div,
         .zimmer-room [data-zimmer-object-type="text"] > div > div {
@@ -543,7 +798,7 @@ export default function ZimmerCanvas() {
         }
       `}</style>
 
-      {/* Mode switch */}
+      {/* Edit mode switch */}
       <div className="sticky top-0 z-50 flex items-center justify-between gap-3 border-b border-white/10 bg-[#100d20]/95 px-5 py-3 backdrop-blur-md">
         <span className="text-sm font-semibold text-purple-100">
           My Zimmer
@@ -558,14 +813,14 @@ export default function ZimmerCanvas() {
         </button>
       </div>
 
-      {/* Editing tools */}
+      {/* Editing toolbar */}
       {isEditing && (
         <div className="relative z-20 flex flex-wrap items-center gap-2 border-b border-white/10 bg-black/20 p-4">
           <button
             type="button"
             onClick={addText}
-            disabled={room.objects.length >= 100}
-            className="rounded-full bg-white/15 px-4 py-2 text-sm hover:bg-white/25 disabled:opacity-40"
+            disabled={maxObjectsReached}
+            className={toolButton}
           >
             + Add Text
           </button>
@@ -577,8 +832,8 @@ export default function ZimmerCanvas() {
                 key={asset.id}
                 type="button"
                 onClick={() => addSticker(asset.id)}
-                disabled={room.objects.length >= 100}
-                className="rounded-full bg-pink-400/20 px-3 py-2 text-sm text-pink-100 hover:bg-pink-400/30 disabled:opacity-40"
+                disabled={maxObjectsReached}
+                className={toolButton}
               >
                 {asset.name}
               </button>
@@ -586,9 +841,18 @@ export default function ZimmerCanvas() {
 
           <button
             type="button"
+            onClick={addCloudGif}
+            disabled={maxObjectsReached}
+            className={toolButton}
+          >
+            + Add Moving Clouds
+          </button>
+
+          <button
+            type="button"
             onClick={duplicateSelected}
-            disabled={!selectedObject || room.objects.length >= 100}
-            className="rounded-full bg-purple-400/20 px-4 py-2 text-sm hover:bg-purple-400/30 disabled:opacity-40"
+            disabled={!selectedObject || maxObjectsReached}
+            className={toolButton}
           >
             Duplicate
           </button>
@@ -597,7 +861,7 @@ export default function ZimmerCanvas() {
             type="button"
             onClick={() => moveSelectedLayer("backward")}
             disabled={!selectedObject}
-            className="rounded-full bg-white/10 px-4 py-2 text-sm hover:bg-white/20 disabled:opacity-40"
+            className={toolButton}
           >
             Send Backward
           </button>
@@ -606,7 +870,7 @@ export default function ZimmerCanvas() {
             type="button"
             onClick={() => moveSelectedLayer("forward")}
             disabled={!selectedObject}
-            className="rounded-full bg-white/10 px-4 py-2 text-sm hover:bg-white/20 disabled:opacity-40"
+            className={toolButton}
           >
             Bring Forward
           </button>
@@ -615,7 +879,7 @@ export default function ZimmerCanvas() {
             type="button"
             onClick={toggleSelectedLock}
             disabled={!selectedObject}
-            className="rounded-full bg-white/10 px-4 py-2 text-sm hover:bg-white/20 disabled:opacity-40"
+            className={toolButton}
           >
             {selectedObject?.locked
               ? "Unlock Object"
@@ -626,11 +890,168 @@ export default function ZimmerCanvas() {
             type="button"
             onClick={removeSelected}
             disabled={!selectedObject || selectedObject.locked}
-            className="rounded-full bg-pink-400/20 px-4 py-2 text-sm hover:bg-pink-400/30 disabled:opacity-40"
+            className={toolButton}
           >
             Remove Selected
           </button>
         </div>
+      )}
+
+      {/* Background controls */}
+      {isEditing && (
+        <div className="relative z-20 border-b border-purple-300/15 bg-[#171125] px-5 py-4">
+          <div className="mx-auto max-w-6xl space-y-4">
+            <div>
+              <h2 className="text-base font-semibold text-purple-100">
+                ✦ Zimmer Background
+              </h2>
+              <p className="mt-1 text-xs text-white/50">
+                Replace the entire background without moving
+                any of your Zimmer objects.
+              </p>
+            </div>
+
+            <div className="flex flex-wrap gap-2">
+              <button
+                type="button"
+                onClick={() => setBackgroundMode("gradient")}
+                className={toolButton}
+              >
+                Original Gradient
+              </button>
+
+              <button
+                type="button"
+                onClick={() => setBackgroundMode("color")}
+                className={toolButton}
+              >
+                Solid Color
+              </button>
+
+              <button
+                type="button"
+                onClick={() => setBackgroundMode("gif")}
+                className={toolButton}
+              >
+                ☾ Moving Lavender Clouds
+              </button>
+            </div>
+
+            {room.background.type === "color" && (
+              <label className="flex items-center gap-3 text-sm">
+                Background color
+                <input
+                  type="color"
+                  value={hexColor(room.background.color)}
+                  onChange={(event) =>
+                    setRoom((current) => ({
+                      ...current,
+                      background: {
+                        ...current.background,
+                        color: event.target.value,
+                      },
+                    }))
+                  }
+                  className="h-10 w-14 cursor-pointer rounded-lg"
+                />
+              </label>
+            )}
+
+            <div className="flex flex-wrap items-end gap-2">
+              <label className="flex min-w-[220px] max-w-xl flex-1 flex-col gap-2 text-sm">
+                Custom background image / GIF URL
+                <input
+                  type="text"
+                  value={backgroundUrl}
+                  onChange={(event) =>
+                    setBackgroundUrl(event.target.value)
+                  }
+                  placeholder="/graphics/backgrounds/your-image.gif"
+                  className="rounded-xl border border-white/20 bg-white/10 px-3 py-2 text-white outline-none focus:border-purple-300"
+                />
+              </label>
+
+              <button
+                type="button"
+                onClick={applyCustomBackground}
+                className={toolButton}
+              >
+                Apply Background
+              </button>
+            </div>
+
+            {backgroundError && (
+              <p className="text-sm text-pink-300" role="alert">
+                {backgroundError}
+              </p>
+            )}
+
+            <p className="text-xs text-white/45">
+              Background changes are local until backend saving
+              is connected.
+            </p>
+          </div>
+        </div>
+      )}
+
+      
+<FloatingControl
+  storageKey="scenes-zimmer-raindrop-position-v1"
+  initialPosition="top-right"
+>
+  <button
+    id="zimmer-edit-raindrop"
+    type="button"
+    aria-label={
+      editorOpen
+        ? "Close Zimmer customization editor"
+        : "Open Zimmer customization editor"
+    }
+    aria-expanded={editorOpen}
+    onClick={() => {
+      if (editorOpen) {
+        setEditorOpen(false);
+        setIsEditing(false);
+        setSelectedId(null);
+      } else {
+        setEditorOpen(true);
+        setIsEditing(true);
+      }
+    }}
+    className="flex h-12 w-12 cursor-grab items-center justify-center rounded-full border border-white/30 bg-[#201735]/80 text-xl shadow-xl backdrop-blur-xl transition hover:bg-purple-400/30 active:cursor-grabbing"
+  >
+    💧
+  </button>
+</FloatingControl>
+
+
+      {editorOpen && (
+        <ZimmerEditor
+          selectedObject={selectedObject}
+          background={room.background}
+          onClose={() => {
+            setEditorOpen(false);
+            setIsEditing(false);
+            setSelectedId(null);
+          }}
+          onAddText={addText}
+         stickers={graphicsLibrary.filter(
+  (asset) => asset.category === "stickers"
+)}
+onAddSticker={addSticker}
+          onAddGif={addGifFromUrl}
+          onSetBackground={setEditorBackground}
+          onUpdateObject={updateSelectedObject}
+          onDuplicate={duplicateSelected}
+          onDelete={removeSelected}
+          onBringForward={() =>
+            moveSelectedLayer("forward")
+          }
+          onSendBackward={() =>
+            moveSelectedLayer("backward")
+          }
+          onToggleLock={toggleSelectedLock}
+        />
       )}
 
       {/* Zimmer canvas */}
@@ -639,12 +1060,7 @@ export default function ZimmerCanvas() {
         className={`zimmer-room relative mx-auto min-h-[800px] w-full max-w-[1200px] overflow-hidden ${
           isEditing ? "zimmer-editing" : ""
         }`}
-        style={{
-          background:
-            room.background.type === "gradient"
-              ? room.background.gradient
-              : room.background.color,
-        }}
+        style={backgroundStyle}
         onClick={() => {
           if (isEditing) setSelectedId(null);
         }}
@@ -659,7 +1075,7 @@ export default function ZimmerCanvas() {
         ))}
       </div>
 
-      {/* Drag / resize / rotate only in Edit mode */}
+      {/* Drag / resize / rotate */}
       {isEditing &&
         selectedObject &&
         !selectedObject.locked && (
@@ -683,13 +1099,10 @@ export default function ZimmerCanvas() {
             onDrag={({ beforeTranslate }) => {
               const element = getSelectedElement();
 
-              if (!element || !pendingTransform.current) {
-                return;
-              }
+              if (!element || !pendingTransform.current) return;
 
               const x =
                 selectedObject.transform.x + beforeTranslate[0];
-
               const y =
                 selectedObject.transform.y + beforeTranslate[1];
 
@@ -714,14 +1127,11 @@ export default function ZimmerCanvas() {
             onResize={({ width, height, drag }) => {
               const element = getSelectedElement();
 
-              if (!element || !pendingTransform.current) {
-                return;
-              }
+              if (!element || !pendingTransform.current) return;
 
               const x =
                 selectedObject.transform.x +
                 drag.beforeTranslate[0];
-
               const y =
                 selectedObject.transform.y +
                 drag.beforeTranslate[1];
@@ -770,7 +1180,7 @@ export default function ZimmerCanvas() {
           />
         )}
 
-      {/* Styling controls */}
+      {/* Object styling */}
       {isEditing && selectedObject && (
         <div className="relative z-20 border-t border-white/10 bg-[#171125] p-5">
           <div className="mx-auto max-w-6xl">
@@ -788,9 +1198,8 @@ export default function ZimmerCanvas() {
                 Text Color
                 <input
                   type="color"
-                  value={hexColor(
-                    selectedObject.appearance.color
-                  )}
+                  disabled={selectedObject.locked}
+                  value={hexColor(selectedObject.appearance.color)}
                   onChange={(event) =>
                     updateSelectedAppearance({
                       color: event.target.value,
@@ -804,6 +1213,7 @@ export default function ZimmerCanvas() {
                 Background Color
                 <input
                   type="color"
+                  disabled={selectedObject.locked}
                   value={hexColor(
                     selectedObject.appearance.backgroundColor
                   )}
@@ -822,6 +1232,7 @@ export default function ZimmerCanvas() {
                   type="range"
                   min="12"
                   max="120"
+                  disabled={selectedObject.locked}
                   value={selectedObject.appearance.fontSize}
                   onChange={(event) =>
                     updateSelectedAppearance({
@@ -841,6 +1252,7 @@ export default function ZimmerCanvas() {
                   min="0.1"
                   max="1"
                   step="0.05"
+                  disabled={selectedObject.locked}
                   value={selectedObject.appearance.opacity}
                   onChange={(event) =>
                     updateSelectedAppearance({
@@ -858,6 +1270,7 @@ export default function ZimmerCanvas() {
               <label className="flex flex-col gap-2 text-sm">
                 Font Family
                 <select
+                  disabled={selectedObject.locked}
                   value={selectedObject.appearance.fontFamily}
                   onChange={(event) =>
                     updateSelectedAppearance({
@@ -887,6 +1300,7 @@ export default function ZimmerCanvas() {
               <label className="flex flex-col gap-2 text-sm">
                 Font Weight
                 <select
+                  disabled={selectedObject.locked}
                   value={selectedObject.appearance.fontWeight}
                   onChange={(event) =>
                     updateSelectedAppearance({
@@ -910,6 +1324,7 @@ export default function ZimmerCanvas() {
                   type="range"
                   min="0"
                   max="60"
+                  disabled={selectedObject.locked}
                   value={selectedObject.appearance.borderRadius}
                   onChange={(event) =>
                     updateSelectedAppearance({
@@ -929,6 +1344,7 @@ export default function ZimmerCanvas() {
                   min="0"
                   max="12"
                   step="0.5"
+                  disabled={selectedObject.locked}
                   value={selectedObject.appearance.blur}
                   onChange={(event) =>
                     updateSelectedAppearance({
@@ -945,7 +1361,7 @@ export default function ZimmerCanvas() {
         </div>
       )}
 
-      {/* Long-form text editor */}
+      {/* Text editing */}
       {isEditing &&
         selectedObject &&
         (selectedObject.type === "text" ||
@@ -961,6 +1377,7 @@ export default function ZimmerCanvas() {
             <textarea
               id="zimmer-text-editor"
               value={selectedObject.content ?? ""}
+              disabled={selectedObject.locked}
               onChange={(event) =>
                 updateSelectedContent(event.target.value)
               }

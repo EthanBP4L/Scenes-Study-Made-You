@@ -462,3 +462,28 @@ height: min(220px, 65vw, 30vh);
     animation: none !important;
   }
 }
+
+/* SCENES — ambient floating raindrops */
+
+@keyframes scenesRaindropFloat {
+  0%, 100% {
+    transform: translateY(0);
+  }
+
+  50% {
+    transform: translateY(-6px);
+  }
+}
+
+#zimmer-edit-raindrop,
+#edit-raindrop {
+  animation: scenesRaindropFloat 4s ease-in-out infinite;
+  will-change: transform;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  #zimmer-edit-raindrop,
+  #edit-raindrop {
+    animation: none;
+  }
+}

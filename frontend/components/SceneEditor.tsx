@@ -1,6 +1,6 @@
 
 "use client";
-
+import FloatingEditor from "./FloatingEditor";
 import type {
   SceneTextStyle,
   SceneMaterial,
@@ -46,13 +46,21 @@ export default function SceneEditor({
   const selectClass =
     "mt-1 w-full rounded-xl border border-white/20 bg-[#26334c] p-2";
 
+  
+   
   return (
-    <aside
-      aria-label="SCENES customization editor"
-      className="absolute right-4 top-20 z-50 max-h-[calc(100vh-6rem)] w-[min(340px,calc(100vw-2rem))] overflow-y-auto rounded-3xl border border-white/25 bg-[#111a30]/90 p-5 text-white shadow-2xl backdrop-blur-2xl"
+    <FloatingEditor
+      launcherId="edit-raindrop"
+      storageKey="scenes-home-editor-position-v1"
+      ariaLabel="SCENES customization editor"
     >
-      <div className="mb-5 flex items-center justify-between">
-        <h2 className="text-lg font-bold">
+      <div className="min-h-0 flex-1 overflow-y-auto overscroll-contain pr-1">
+        <div
+          data-panel-drag-handle
+          className="mb-3 flex cursor-grab touch-none items-center justify-between rounded-2xl border border-white/10 bg-white/5 px-3 py-2 active:cursor-grabbing"
+        >
+
+   <h2 className="text-lg font-bold">
           Customize SCENES
         </h2>
 
@@ -304,6 +312,7 @@ export default function SceneEditor({
           Reset animation
         </button>
       </div>
-    </aside>
+    </div>
+  </FloatingEditor>
   );
 }

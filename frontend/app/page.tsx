@@ -7,6 +7,7 @@ import SceneBackground from "../components/SceneBackground";
 import NavigationOrb from "../components/NavigationOrb";
 import EditableSceneTitle from "../components/EditableSceneTitle";
 import SceneEditor from "../components/SceneEditor";
+import FloatingControl from "../components/FloatingControl";
 
 import type { SceneTextStyle } from "../lib/sceneStyles";
 import {
@@ -49,7 +50,6 @@ export default function Home() {
   const [editorOpen, setEditorOpen] = useState(false);
   const [loaded, setLoaded] = useState(false);
 
-  // Load previously saved customization
   useEffect(() => {
     try {
       const saved = window.localStorage.getItem(STORAGE_KEY);
@@ -78,7 +78,6 @@ export default function Home() {
     }
   }, []);
 
-  // Automatically save customization after initial load
   useEffect(() => {
     if (!loaded) return;
 
@@ -116,20 +115,25 @@ export default function Home() {
 
       <NavigationOrb />
 
-      <button
-        id="edit-raindrop"
-        type="button"
-        aria-label={
-          editorOpen
-            ? "Close customization editor"
-            : "Open customization editor"
-        }
-        aria-expanded={editorOpen}
-        onClick={() => setEditorOpen((open) => !open)}
-        className="absolute right-6 top-6 z-40 flex h-12 w-12 items-center justify-center rounded-full border border-white/30 bg-white/10 backdrop-blur-xl transition hover:bg-white/20"
+      <FloatingControl
+        storageKey="scenes-home-raindrop-position-v1"
+        initialPosition="top-right"
       >
-        <span className="text-xl">💧</span>
-      </button>
+        <button
+          id="edit-raindrop"
+          type="button"
+          aria-label={
+            editorOpen
+              ? "Close customization editor"
+              : "Open customization editor"
+          }
+          aria-expanded={editorOpen}
+          onClick={() => setEditorOpen((open) => !open)}
+          className="flex h-12 w-12 items-center justify-center rounded-full border border-white/30 bg-white/10 backdrop-blur-xl transition hover:bg-white/20"
+        >
+          <span className="text-xl">💧</span>
+        </button>
+      </FloatingControl>
 
       {editorOpen && (
         <SceneEditor
