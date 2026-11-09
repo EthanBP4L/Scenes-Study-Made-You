@@ -4,11 +4,13 @@
 import { useState, type FormEvent } from "react";
 import { useRouter } from "next/navigation";
 import { scenesTheme } from "../../lib/scenesTheme";
+import { useAuth } from "../../components/AuthProvider";
 
 type AuthMode = "login" | "signup";
 
 export default function LoginPage() {
   const router = useRouter();
+  const { refreshUser } = useAuth();
 
   const [mode, setMode] = useState<AuthMode>("login");
   const [name, setName] = useState("");
@@ -122,6 +124,7 @@ async function handleSubmit(event: FormEvent<HTMLFormElement>) {
       return;
     }
 
+    await refreshUser();
     router.push("/home");
   } catch {
     setMessage(

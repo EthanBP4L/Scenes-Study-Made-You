@@ -1,6 +1,7 @@
 
 "use client";
 
+import RequireAuth from "../../components/RequireAuth";
 import { useRef, useState } from "react";
 import Link from "next/link";
 import ZimmerCanvas from "../../components/ZimmerCanvas";
@@ -50,6 +51,7 @@ export default function StudyBayPage() {
   }
 
   return (
+    <RequireAuth>
     <div className="relative min-h-screen bg-[#0b1025]">
       <ZimmerCanvas
         pageName="Study Bay"
@@ -220,5 +222,6 @@ export default function StudyBayPage() {
         </div>
       </div>
     </div>
+    </RequireAuth>
   );
 }
