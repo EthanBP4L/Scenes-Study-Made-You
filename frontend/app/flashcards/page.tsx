@@ -2,7 +2,6 @@
 "use client";
 
 import { useState } from "react";
-import Link from "next/link";
 import ZimmerCanvas from "../../components/ZimmerCanvas";
 import RequireAuth from "../../components/RequireAuth";
 import {
@@ -76,19 +75,6 @@ export default function FlashcardsPage() {
 
         <div className="pointer-events-none absolute inset-x-0 top-0 z-10 mx-auto max-w-[1200px] px-5 pb-20 pt-14 sm:px-12">
           <div className="pointer-events-auto mx-auto max-w-[950px]">
-            <div className="mb-10 flex flex-wrap items-center justify-between gap-4">
-              <Link
-                href="/study-bay"
-                className="rounded-2xl border border-purple-200/25 bg-white/10 px-5 py-3 text-sm font-semibold text-purple-50 backdrop-blur-xl transition hover:bg-white/20"
-              >
-                ← Back to Study Bay
-              </Link>
-
-              <span className="rounded-full border border-pink-200/20 bg-white/10 px-4 py-2 text-xs uppercase tracking-[0.2em] text-pink-100/75">
-                SCENES · STUDY SPACE
-              </span>
-            </div>
-
             <header className="mb-10 text-center">
               <p className="text-xs font-semibold uppercase tracking-[0.4em] text-pink-200/75">
                 LEARN · REMEMBER · GROW
@@ -257,7 +243,7 @@ export default function FlashcardsPage() {
                   </div>
                 </div>
 
-                {/* Navigation */}
+                {/* Flashcard controls */}
                 <div className="mt-7 flex flex-wrap items-center justify-center gap-3">
                   <button
                     type="button"
@@ -292,15 +278,6 @@ export default function FlashcardsPage() {
                   Sample cards for frontend layout preview
                 </p>
               </section>
-            </div>
-
-            <div className="mt-9 text-center">
-              <Link
-                href="/study-bay"
-                className="inline-flex items-center justify-center rounded-2xl border border-purple-200/25 bg-white/10 px-7 py-3.5 text-sm font-semibold text-purple-50 backdrop-blur-xl transition hover:bg-white/20"
-              >
-                ← Return to Study Bay
-              </Link>
             </div>
 
             <footer className="mt-12 text-center text-xs tracking-[0.25em] text-purple-100/40">

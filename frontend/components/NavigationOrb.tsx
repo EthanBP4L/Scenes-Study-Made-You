@@ -7,6 +7,7 @@ import { usePathname } from "next/navigation";
 import FloatingControl from "./FloatingControl";
 import { useAuth } from "./AuthProvider";
 
+
 const destinations = [
   {
     label: "Home",
@@ -27,12 +28,19 @@ const destinations = [
     description: "Your PDFs, decks, and study space",
   },
   {
+    label: "Flashcards",
+    href: "/flashcards",
+    symbol: "✎",
+    description: "Your flashcard decks and study sessions",
+  },
+  {
     label: "Posts",
     href: "/posts",
     symbol: "❋",
     description: "The SCENES community",
   },
 ];
+
 
 type Position = {
   x: number;
