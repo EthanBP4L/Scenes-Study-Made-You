@@ -74,7 +74,7 @@ class RoomObject(RoomSchema):
     locked: bool
     transform: Transform
     appearance: Appearance
-    content: str | None = Field(default=None, max_length=2000)
+    content: str | None = Field(default=None, max_length=20000)
     mediaUrl: str | None = Field(default=None, max_length=500)
     parentId: None = None
     dataSourceId: str | None = None

@@ -450,6 +450,43 @@ def get_my_decks(
     ]
 
 
+@app.get("/api/v1/users/{user_id}/study-sets")
+def get_user_study_sets(
+    user_id: int,
+    db: Session = Depends(get_db),
+    current_user: User | None = Depends(get_optional_user)
+):
+    user = db.get(User, user_id)
+
+    if user is None:
+        raise HTTPException(
+            status_code=404,
+            detail="User not found."
+        )
+
+    query = select(Deck).where(
+        Deck.owner_id == user_id
+    )
+
+    # Only the owner can see their private decks.
+    if current_user is None or current_user.id != user_id:
+        query = query.where(Deck.is_public.is_(True))
+
+    decks = db.scalars(
+        query.order_by(Deck.created_at.desc())
+    ).all()
+
+    return [
+        {
+            "id": deck.id,
+            "name": deck.name,
+            "description": deck.description,
+            "is_public": deck.is_public,
+            "created_at": deck.created_at
+        }
+        for deck in decks
+    ]
+
 
 
 @app.delete("/api/v1/decks/{deck_id}/flashcards/{flashcard_id}")
@@ -1141,6 +1178,43 @@ def get_my_room(
     room = db.scalar(
         select(Room).where(
             Room.owner_id == current_user.id
+        )
+    )
+
+    if room is None:
+        raise HTTPException(
+            status_code=404,
+            detail="Room not found."
+        )
+
+    return {
+        "schemaVersion": room.schema_version,
+        "id": room.id,
+        "ownerId": room.owner_id,
+        "revision": room.revision,
+        "name": room.name,
+        "visibility": room.visibility,
+        "published": room.published,
+        "background": room.background,
+        "objects": room.objects,
+        "studySets": room.study_sets,
+        "updatedAt": room.updated_at
+    }
+
+
+@app.get(
+    "/api/v1/zimmers/{zimmer_id}",
+    response_model=RoomDocument
+)
+def get_public_room(
+    zimmer_id: str,
+    db: Session = Depends(get_db)
+):
+    room = db.scalar(
+        select(Room).where(
+            Room.id == zimmer_id,
+            Room.visibility == "public",
+            Room.published == True
         )
     )
 
