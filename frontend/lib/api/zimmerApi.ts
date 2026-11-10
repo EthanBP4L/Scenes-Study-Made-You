@@ -63,18 +63,34 @@ export const zimmerApi = {
     return request<ZimmerDocument>("/api/v1/me/zimmer");
   },
 
-  save(
-    room: ZimmerDraft,
-    expectedRevision: number | null
-  ): Promise<ZimmerDocument> {
-    return request<ZimmerDocument>("/api/v1/me/zimmer", {
-      method: "PUT",
-      body: JSON.stringify({
-        ...room,
-        expectedRevision,
-      }),
-    });
-  },
+save(
+  room: ZimmerDraft,
+  expectedRevision: number | null
+): Promise<ZimmerDocument> {
+  const {
+    schemaVersion,
+    name,
+    visibility,
+    published,
+    background,
+    objects,
+    studySets,
+  } = room;
+
+  return request<ZimmerDocument>("/api/v1/me/zimmer", {
+    method: "PUT",
+    body: JSON.stringify({
+      schemaVersion,
+      expectedRevision,
+      name,
+      visibility,
+      published,
+      background,
+      objects,
+      studySets,
+    }),
+  });
+},
 
   getPublic(zimmerId: string): Promise<ZimmerDocument> {
     return request<ZimmerDocument>(
