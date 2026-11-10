@@ -5,6 +5,8 @@ import { useEffect, useRef, useState } from "react";
 import Link from "next/link";
 import { usePathname } from "next/navigation";
 import FloatingControl from "./FloatingControl";
+import { useAuth } from "./AuthProvider";
+
 
 const destinations = [
   {
@@ -26,12 +28,19 @@ const destinations = [
     description: "Your PDFs, decks, and study space",
   },
   {
+    label: "Flashcards",
+    href: "/flashcards",
+    symbol: "✎",
+    description: "Your flashcard decks and study sessions",
+  },
+  {
     label: "Posts",
     href: "/posts",
     symbol: "❋",
     description: "The SCENES community",
   },
 ];
+
 
 type Position = {
   x: number;
@@ -48,9 +57,26 @@ export default function NavigationOrb() {
     y: 0,
   });
   const [positionReady, setPositionReady] = useState(false);
+  const [logoutError, setLogoutError] = useState("");
+  const [loggingOut, setLoggingOut] = useState(false);
 
   const menuRef = useRef<HTMLDivElement>(null);
   const pathname = usePathname();
+  const { user, logout } = useAuth();
+
+  async function handleLogout() {
+    setLogoutError("");
+    setLoggingOut(true);
+
+    try {
+      await logout();
+      setIsOpen(false);
+    } catch {
+      setLogoutError("Unable to log out. Please try again.");
+    } finally {
+      setLoggingOut(false);
+    }
+  }
 
   useEffect(() => {
     setIsOpen(false);
@@ -96,7 +122,6 @@ export default function NavigationOrb() {
         x = orbRect.left + orbRect.width / 2 - menuWidth / 2;
         y = orbRect.bottom + GAP;
       } else {
-        // Use the side with the most room.
         x =
           roomRight >= roomLeft
             ? orbRect.right + GAP
@@ -228,6 +253,35 @@ export default function NavigationOrb() {
               );
             })}
           </nav>
+
+          {user && (
+            <div className="mt-3 border-t border-white/10 px-3 pt-3">
+              <p className="mb-2 text-xs text-purple-100/70">
+                Signed in as{" "}
+                <span className="font-semibold text-pink-200">
+                  {user.username}
+                </span>
+              </p>
+
+              <button
+                type="button"
+                onClick={handleLogout}
+                disabled={loggingOut}
+                className="w-full rounded-xl border border-pink-300/25 bg-pink-400/10 px-4 py-2.5 text-sm font-semibold text-pink-100 transition hover:bg-pink-400/20 disabled:opacity-50"
+              >
+                {loggingOut ? "Logging out..." : "Log out"}
+              </button>
+
+              {logoutError && (
+                <p
+                  role="alert"
+                  className="mt-2 text-xs text-pink-200"
+                >
+                  {logoutError}
+                </p>
+              )}
+            </div>
+          )}
 
           <p className="px-3 pb-1 pt-3 text-center text-[10px] text-purple-100/40">
             study made you ✦

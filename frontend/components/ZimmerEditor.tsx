@@ -21,30 +21,30 @@ type Props = {
   pageName?: string;
   launcherId?: string;
   editorStorageKey?: string;
-
   selectedObject: ZimmerObject | null;
   background: ZimmerBackground;
   onClose: () => void;
-
   onAddText: () => void;
   stickers: StickerAsset[];
   onAddSticker: (assetId: string) => void;
   onAddGif: (url: string) => void;
-
   onSetBackground: (
     type: "gradient" | "color" | "image" | "gif",
     value?: string
   ) => void;
-
   onUpdateObject: (
     changes: Partial<ZimmerObject>
   ) => void;
-
   onDuplicate: () => void;
   onDelete: () => void;
   onBringForward: () => void;
   onSendBackward: () => void;
   onToggleLock: () => void;
+
+  // Optional saving controls
+  onSave?: () => void;
+  saveStatus?: "idle" | "saving" | "saved" | "error";
+  saveError?: string | null;
 };
 
 const DEFAULT_GIF =
@@ -108,19 +108,17 @@ export default function ZimmerEditor({
   onBringForward,
   onSendBackward,
   onToggleLock,
+  onSave,
+  saveStatus = "idle",
+  saveError = null,
 }: Props) {
   const [tab, setTab] = useState<EditorTab>("add");
-
   const [gifUrl, setGifUrl] = useState(DEFAULT_GIF);
-
   const [backgroundGifUrl, setBackgroundGifUrl] =
     useState(DEFAULT_GIF);
-
   const [imageUrl, setImageUrl] = useState("");
-
   const [backgroundColor, setBackgroundColor] =
     useState("#24183e");
-
   const [error, setError] = useState("");
 
   const appearance = selectedObject?.appearance;
@@ -199,7 +197,6 @@ export default function ZimmerEditor({
             <h2 className="text-lg font-bold">
               Customize {pageName}
             </h2>
-
             <p className="text-xs text-purple-200/70">
               Make this space yours.
             </p>
@@ -272,9 +269,7 @@ export default function ZimmerEditor({
                   type="button"
                   onClick={() => {
                     document
-                      .getElementById(
-                        "zimmer-sticker-gallery"
-                      )
+                      .getElementById("zimmer-sticker-gallery")
                       ?.scrollIntoView({
                         behavior: "smooth",
                         block: "nearest",
@@ -313,9 +308,7 @@ export default function ZimmerEditor({
                       type="button"
                       title={sticker.name}
                       aria-label={`Add ${sticker.name}`}
-                      onClick={() =>
-                        onAddSticker(sticker.id)
-                      }
+                      onClick={() => onAddSticker(sticker.id)}
                       className="group flex flex-col items-center gap-2 rounded-xl border border-white/15 bg-white/5 p-2 transition hover:border-purple-300/70 hover:bg-purple-400/15"
                     >
                       <div className="flex h-20 w-full items-center justify-center overflow-hidden rounded-lg bg-black/20">
@@ -352,7 +345,6 @@ export default function ZimmerEditor({
                   alt="Lavender clouds GIF preview"
                   className="h-32 w-full object-cover"
                 />
-
                 <div className="p-2 text-xs text-white/75">
                   Lavender Clouds — demo asset
                 </div>
@@ -368,7 +360,6 @@ export default function ZimmerEditor({
 
               <label className="block text-xs">
                 Or enter another GIF URL
-
                 <input
                   type="text"
                   value={gifUrl}
@@ -418,7 +409,6 @@ export default function ZimmerEditor({
 
               <label className="block text-xs">
                 Solid background color
-
                 <input
                   type="color"
                   value={backgroundColor}
@@ -473,7 +463,6 @@ export default function ZimmerEditor({
 
               <label className="block text-xs">
                 GIF URL
-
                 <input
                   type="text"
                   value={backgroundGifUrl}
@@ -500,7 +489,6 @@ export default function ZimmerEditor({
 
               <label className="block text-xs">
                 Image URL
-
                 <input
                   type="text"
                   value={imageUrl}
@@ -531,7 +519,6 @@ export default function ZimmerEditor({
                 <p className="text-sm font-semibold">
                   No object selected
                 </p>
-
                 <p className="text-xs text-white/60">
                   Click an object on the page to edit its
                   appearance and layers.
@@ -573,13 +560,9 @@ export default function ZimmerEditor({
                         </h3>
 
                         <textarea
-                          value={
-                            selectedObject.content ?? ""
-                          }
+                          value={selectedObject.content ?? ""}
                           onChange={(event) =>
-                            updateContent(
-                              event.target.value
-                            )
+                            updateContent(event.target.value)
                           }
                           rows={5}
                           className={fieldClass}
@@ -593,9 +576,7 @@ export default function ZimmerEditor({
                             type="range"
                             min="10"
                             max="120"
-                            value={
-                              appearance?.fontSize ?? 24
-                            }
+                            value={appearance?.fontSize ?? 24}
                             onChange={(event) =>
                               updateAppearance({
                                 fontSize: Number(
@@ -618,8 +599,7 @@ export default function ZimmerEditor({
                             )}
                             onChange={(event) =>
                               updateAppearance({
-                                color:
-                                  event.target.value,
+                                color: event.target.value,
                               })
                             }
                             className="mt-2 h-10 w-full"
@@ -637,8 +617,7 @@ export default function ZimmerEditor({
                       <label className="block text-xs">
                         Opacity:{" "}
                         {Math.round(
-                          (appearance?.opacity ?? 1) *
-                            100
+                          (appearance?.opacity ?? 1) * 100
                         )}
                         %
 
@@ -647,15 +626,12 @@ export default function ZimmerEditor({
                           min="0"
                           max="100"
                           value={Math.round(
-                            (appearance?.opacity ?? 1) *
-                              100
+                            (appearance?.opacity ?? 1) * 100
                           )}
                           onChange={(event) =>
                             updateAppearance({
                               opacity:
-                                Number(
-                                  event.target.value
-                                ) / 100,
+                                Number(event.target.value) / 100,
                             })
                           }
                           className="mt-2 w-full"
@@ -670,9 +646,7 @@ export default function ZimmerEditor({
                           type="range"
                           min="0"
                           max="100"
-                          value={
-                            appearance?.borderRadius ?? 0
-                          }
+                          value={appearance?.borderRadius ?? 0}
                           onChange={(event) =>
                             updateAppearance({
                               borderRadius: Number(
@@ -692,9 +666,7 @@ export default function ZimmerEditor({
                           type="range"
                           min="0"
                           max="12"
-                          value={
-                            appearance?.borderWidth ?? 0
-                          }
+                          value={appearance?.borderWidth ?? 0}
                           onChange={(event) =>
                             updateAppearance({
                               borderWidth: Number(
@@ -718,8 +690,7 @@ export default function ZimmerEditor({
                           )}
                           onChange={(event) =>
                             updateAppearance({
-                              borderColor:
-                                event.target.value,
+                              borderColor: event.target.value,
                             })
                           }
                           className="mt-2 h-10 w-full"
@@ -774,6 +745,42 @@ export default function ZimmerEditor({
           </div>
         )}
       </div>
+
+      {/* SAVE ROOM CONTROLS */}
+      {onSave && (
+        <div className="mt-3 shrink-0 border-t border-white/15 pt-3">
+          <button
+            type="button"
+            onClick={onSave}
+            disabled={saveStatus === "saving"}
+            className="w-full rounded-xl border border-purple-300/40 bg-purple-500/30 px-4 py-3 text-sm font-bold text-white transition hover:bg-purple-500/45 disabled:cursor-wait disabled:opacity-60"
+          >
+            {saveStatus === "saving"
+              ? "Saving Room..."
+              : saveStatus === "saved"
+                ? "✓ Saved — Save Again"
+                : "✦ Save Room"}
+          </button>
+
+          {saveStatus === "saved" && (
+            <p
+              role="status"
+              className="mt-2 text-center text-xs text-emerald-300"
+            >
+              Your room was saved successfully.
+            </p>
+          )}
+
+          {saveStatus === "error" && (
+            <p
+              role="alert"
+              className="mt-2 text-center text-xs text-rose-300"
+            >
+              {saveError ?? "Unable to save your room."}
+            </p>
+          )}
+        </div>
+      )}
     </FloatingEditor>
   );
 }

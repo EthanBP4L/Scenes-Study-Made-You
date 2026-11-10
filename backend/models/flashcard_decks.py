@@ -1,8 +1,19 @@
 
+from __future__ import annotations
+
 from datetime import datetime, timezone
 
-from sqlalchemy import String, DateTime, Boolean, ForeignKey
-from sqlalchemy.orm import Mapped, mapped_column, relationship
+from sqlalchemy import (
+    String,
+    DateTime,
+    Boolean,
+    ForeignKey,
+)
+from sqlalchemy.orm import (
+    Mapped,
+    mapped_column,
+    relationship,
+)
 
 from database import Base
 
@@ -37,14 +48,6 @@ class Deck(Base):
         nullable=False
     )
 
-
-    flashcards: Mapped[list["Flashcard"]] = relationship(
-        "Flashcard",
-        back_populates="deck",
-        cascade="all, delete-orphan"
-    )
-
-
     owner_id: Mapped[int | None] = mapped_column(
         ForeignKey("users.id"),
         nullable=True,
@@ -56,4 +59,16 @@ class Deck(Base):
         back_populates="decks"
     )
 
+    flashcards: Mapped[list["Flashcard"]] = relationship(
+        "Flashcard",
+        back_populates="deck",
+        cascade="all, delete-orphan"
+    )
 
+    # One-to-one social record for this deck.
+    social: Mapped["DeckSocial | None"] = relationship(
+        "DeckSocial",
+        back_populates="deck",
+        uselist=False,
+        cascade="all, delete-orphan"
+    )

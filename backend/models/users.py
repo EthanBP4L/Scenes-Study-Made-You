@@ -1,11 +1,12 @@
+
 from __future__ import annotations
 
 from datetime import datetime, timezone
-from profile import Profile
 
 from sqlalchemy import String, DateTime
 from sqlalchemy.orm import Mapped, mapped_column, relationship
 
+#from posts import Post
 from database import Base
 
 
@@ -61,3 +62,32 @@ class User(Base):
         cascade="all, delete-orphan"
     )
 
+    # Comments written by this user.
+    deck_comments: Mapped[list["DeckComment"]] = relationship(
+        "DeckComment",
+        back_populates="author"
+    )
+
+    # Deck likes created by this user.
+    deck_likes: Mapped[list["DeckLike"]] = relationship(
+        "DeckLike",
+        back_populates="user"
+    )
+
+    posts: Mapped[list["Post"]] = relationship(
+        "Post",
+        back_populates="author",
+        cascade="all, delete-orphan"
+    )
+
+    post_likes: Mapped[list["PostLike"]] = relationship(
+        "PostLike",
+        back_populates="user",
+    cascade="all, delete-orphan"
+    )
+
+    post_comments: Mapped[list["PostComment"]] = relationship(
+        "PostComment",
+        back_populates="author",
+        cascade="all, delete-orphan"
+    )

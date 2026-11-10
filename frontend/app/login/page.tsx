@@ -4,11 +4,13 @@
 import { useState, type FormEvent } from "react";
 import { useRouter } from "next/navigation";
 import { scenesTheme } from "../../lib/scenesTheme";
+import { useAuth } from "../../components/AuthProvider";
 
 type AuthMode = "login" | "signup";
 
 export default function LoginPage() {
   const router = useRouter();
+  const { refreshUser } = useAuth();
 
   const [mode, setMode] = useState<AuthMode>("login");
   const [name, setName] = useState("");
@@ -27,34 +29,110 @@ export default function LoginPage() {
     setConfirmPassword("");
   }
 
-  function handleSubmit(event: FormEvent<HTMLFormElement>) {
-    event.preventDefault();
-    setMessage("");
 
-    if (isSignup && !name.trim()) {
-      setMessage("Please enter your name.");
+async function handleSubmit(event: FormEvent<HTMLFormElement>) {
+  event.preventDefault();
+  setMessage("");
+
+  if (isSignup && !name.trim()) {
+    setMessage("Please enter a username.");
+    return;
+  }
+
+  if (!email.trim() || !password) {
+    setMessage("Please fill in your email and password.");
+    return;
+  }
+
+  if (isSignup) {
+    if (!/^[a-zA-Z0-9_]{3,30}$/.test(name.trim())) {
+      setMessage(
+        "Username must be 3–30 characters and contain only letters, numbers, or underscores."
+      );
       return;
     }
 
-    if (!email.trim() || !password) {
-      setMessage("Please fill in your email and password.");
+    if (password.length < 8 || password.length > 128) {
+      setMessage("Password must be between 8 and 128 characters.");
       return;
     }
 
-    if (isSignup && password.length < 8) {
-      setMessage("Please use at least 8 characters.");
-      return;
-    }
-
-    if (isSignup && password !== confirmPassword) {
+    if (password !== confirmPassword) {
       setMessage("Your passwords don't match.");
       return;
     }
-
-    // Frontend demo only.
-    // Real authentication will be connected later.
-    router.push("/home");
   }
+
+  const apiUrl = process.env.NEXT_PUBLIC_API_URL;
+
+  if (!apiUrl) {
+    setMessage("API URL is not configured.");
+    return;
+  }
+
+  try {
+    if (isSignup) {
+      const registerResponse = await fetch(
+        `${apiUrl}/api/v1/users/register`,
+        {
+          method: "POST",
+          headers: {
+            "Content-Type": "application/json",
+          },
+          credentials: "include",
+          body: JSON.stringify({
+            username: name.trim(),
+            email: email.trim(),
+            password,
+          }),
+        }
+      );
+
+      if (!registerResponse.ok) {
+        const error = await registerResponse.json();
+        setMessage(
+          typeof error.detail === "string"
+            ? error.detail
+            : "Registration failed."
+        );
+        return;
+      }
+    }
+
+    const loginResponse = await fetch(
+      `${apiUrl}/api/v1/users/login`,
+      {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+        },
+        credentials: "include",
+        body: JSON.stringify({
+          email: email.trim(),
+          password,
+        }),
+      }
+    );
+
+    if (!loginResponse.ok) {
+      const error = await loginResponse.json();
+      setMessage(
+        typeof error.detail === "string"
+          ? error.detail
+          : "Login failed."
+      );
+      return;
+    }
+
+    await refreshUser();
+    router.push("/home");
+  } catch {
+    setMessage(
+      "Unable to connect to the server. Please check that FastAPI is running."
+    );
+  }
+}
+
 
   const inputClass =
     "w-full rounded-2xl border border-[#e6c4ff]/30 bg-[#140e2a]/45 px-4 py-3.5 text-sm text-[#f4e9ff] outline-none transition placeholder:text-[#d5c4e9]/50 focus:border-[#e883cb] focus:ring-2 focus:ring-[#e883cb]/15";
