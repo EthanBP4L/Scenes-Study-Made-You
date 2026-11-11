@@ -45,6 +45,7 @@ SCENES is currently under active development. Additional features and improvemen
 - Pillow
 - Argon2
 
+**Note:** SCENES is currently intended for local development. Run the following commands inside the cloned project directory. Review dependencies and installation scripts before running software from any repository.
 ## 📋 Prerequisites
 
 Before running SCENES locally, install or obtain:
