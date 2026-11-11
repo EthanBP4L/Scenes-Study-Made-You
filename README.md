@@ -47,7 +47,7 @@ SCENES is currently under active development. Additional features and improvemen
 
 ## 📋 Prerequisites
 
-Before running SCENES locally, install:
+Before running SCENES locally, install or obtain:
 
 - **Python 3.11 or newer** (recommended; dependency compatibility may vary)
 - **Node.js 20.9 or newer** (a supported LTS release is recommended)
@@ -55,18 +55,11 @@ Before running SCENES locally, install:
 - **Git**
 - **Google Gemini API key** (required for AI-powered features)
 
-You can obtain a Gemini API key from [Google AI Studio](https://aistudio.google.com/apikey).
 
 ## 🚀 Getting Started
 
-### 1. Clone the Repository
 
-```bash
-git clone https://github.com/ethanbp4l/Scenes-Study-Made-You.git
-cd Scenes-Study-Made-You
-```
-
-### 2. Set Up the Backend
+### 1. Set Up the Backend
 
 Navigate to the backend directory:
 
@@ -74,25 +67,7 @@ Navigate to the backend directory:
 cd backend
 ```
 
-Create a Python virtual environment:
-
-```bash
-python3 -m venv venv
-```
-
-Activate it.
-
-**macOS / Linux:**
-
-```bash
-source venv/bin/activate
-```
-
-**Windows (PowerShell):**
-
-```powershell
-.\venv\Scripts\Activate.ps1
-```
+Create a Python virtual environment and activate it:
 
 Install backend dependencies:
 
@@ -110,7 +85,7 @@ GEMINI_API_KEY=your_gemini_api_key_here
 
 Replace the placeholder with your own Gemini API key.
 
-**Important:** Never commit real API keys, passwords, or other secrets to GitHub.
+The gitignore file ignores the .env file so your API key is never committed
 
 ### 4. Start the Backend
 
@@ -145,10 +120,8 @@ cd frontend
 Install frontend dependencies:
 
 ```bash
-npm install
+npm ci
 ```
-
-For reproducible installations using the committed lockfile, use `npm ci` instead.
 
 ### 6. Configure Frontend Environment Variables
 
