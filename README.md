@@ -6,11 +6,11 @@ SCENES is a study platform designed to combine productivity, creativity, and per
 
 Built with **Next.js, React, TypeScript, Python, and FastAPI**.
 
-## 🎬 SCENES — Demo
+##  SCENES — Demo
 
 https://github.com/user-attachments/assets/365f5fda-7583-49da-9bf3-2a9e284378fa
 
-## ✨ Features
+##  Features
 
 - **Customizable Zimmers:** Create personalized study spaces with draggable, resizable, and rotatable elements.
 - **Images and GIFs:** Upload media and customize room backgrounds.
@@ -22,7 +22,7 @@ https://github.com/user-attachments/assets/365f5fda-7583-49da-9bf3-2a9e284378fa
 
 SCENES is currently under active development. Additional features and improvements are planned.
 
-## 🛠️ Technology Stack
+##  Technology Stack
 
 ### Frontend
 
@@ -46,7 +46,7 @@ SCENES is currently under active development. Additional features and improvemen
 - Argon2
 
 **Note:** SCENES is currently intended for local development. Run the following commands inside the cloned project directory. Review dependencies and installation scripts before running software from any repository.
-## 📋 Prerequisites
+## Prerequisites
 
 Before running SCENES locally, install or obtain:
 
@@ -57,7 +57,7 @@ Before running SCENES locally, install or obtain:
 - **Google Gemini API key** (required for AI-powered features)
 
 
-## 🚀 Getting Started
+## Getting Started
 
 
 ### 1. Set Up the Backend
@@ -148,7 +148,7 @@ http://localhost:3000
 
 SCENES should now be running locally!
 
-## 📁 Project Structure
+## Project Structure
 
 ```text
 Scenes-Study-Made-You/
@@ -172,7 +172,7 @@ The backend handles authentication, database operations, flashcards, PDF process
 
 The frontend provides the user interface, study tools, and customizable Zimmer editor.
 
-## 🔒 Security and Local Data
+## Security and Local Data
 
 - Passwords are protected using password hashing.
 - Authentication uses cookie-based sessions.
@@ -182,7 +182,7 @@ The frontend provides the user interface, study tools, and customizable Zimmer e
 
 This project is currently configured for local development. Additional security and deployment configuration would be required before production use.
 
-## 🔮 Future Development
+## Future Development
 
 SCENES is an evolving project. Planned improvements include:
 
@@ -192,7 +192,7 @@ SCENES is an evolving project. Planned improvements include:
 - Improved content sharing and discovery
 - Production deployment and hosting
 
-## 👨‍💻 Development
+## Development
 
 SCENES is being developed as a collaborative project combining full-stack web development, interactive interface design, and AI-powered educational tools.
 
